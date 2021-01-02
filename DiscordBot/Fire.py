@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from pytz import timezone
 import datetime as dt
+from firebase_config import firebase_config_dict
 
 class Fire:
     """
@@ -32,7 +33,7 @@ class Fire:
     def __init__(self):
         # Checks to see if Firebase was already initialized in the applicaiton
         if not firebase_admin._apps:
-            cred = credentials.Certificate("../firebase_config.json")
+            cred = credentials.Certificate(firebase_config_dict)
             firebase_admin.initialize_app(cred)
         self.__db = firestore.client()
         collection = 'timeCollection'
@@ -82,7 +83,7 @@ class Fire:
 
             return d
         except:
-            print('No such document!')
+            print('Error in fetchTotalTimes')
             return {}
 
     def fetchAllDateTimes(self, guild):

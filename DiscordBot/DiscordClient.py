@@ -58,10 +58,10 @@ class DiscordClient(discord.Client):
                 for guild in self.guilds:
                     members = self.__filter_channel_members(guild)
                     self.sharedFire.incrementTimes(guild, members)
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
             except Exception as e:
                 print("ERROR: ", str(e))
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
 
     def __filter_channel_members(self, guild):
         """

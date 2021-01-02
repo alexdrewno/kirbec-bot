@@ -116,7 +116,7 @@ class TimeLogger:
         userString, timeString, rankString, description = await self.__createdEmbedStrings(guild, userValDict, 1)
 
         title = "Week Log (" + secondDate + " - " + firstDate + ")"
-        return createAggregateLogEmbed(title, description, userString, timeString, rankString)
+        return self.__createAggregateLogEmbed(title, description, userString, timeString, rankString)
 
 
     def getMyLogEmbed(self, guild, user):
@@ -142,11 +142,16 @@ class TimeLogger:
         maxDate = ""
         maxVal = 0
 
-        #gets total time
+
+        # Gets total time
         user_id_string = str(user.id)
+        if not user_id_string in total_times_dict.keys():
+            print("Couldn't find user_id in totalTimes")
+            return
+
         totalTime = total_times_dict[user_id_string]
 
-        # finds maximum value
+        # Finds maximum value
         for key in date_times_dict:
             val = date_times_dict[key]
             if user_id_string in val and val[user_id_string] > maxVal:
@@ -154,8 +159,8 @@ class TimeLogger:
                 maxDate = key
 
         todayVal = 0
-
-        #this whole mumbo-jumbo gets the most recent data and reports how much time was spent for that particular username
+        # This whole mumbo-jumbo gets the most recent data and
+        # reports how much time was spent for that particular username
         if user_id_string in list(date_times_dict.items())[0][1]:
             todayVal = list(date_times_dict.items())[0][1][user_id_string]
 
@@ -186,17 +191,17 @@ class TimeLogger:
 
         user_display_name = user.display_name
 
-        td = dt.timedelta(hours=6)
-        shiftedNow = datetime.today() + td
-        embed = discord.Embed(timestamp=shiftedNow)
+        now = datetime.today()
+        embed = discord.Embed(timestamp=now)
 
         embed.set_thumbnail(url=user.avatar_url)
         embed.set_author(name=user_display_name, icon_url=user.avatar_url)
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
 
         embed.add_field(name="Total Time", value= self.__createTimeString(totalTime) + "\n", inline=False)
-        embed.add_field(name="Time Today", value = self.__createTimeString(todayTime) + "\n", inline=False)
+        embed.add_field(name="Time Today", value= self.__createTimeString(todayTime) + "\n", inline=False)
         embed.add_field(name="Longest Day", value= self.__createTimeString(maxTime) + " (" + str(maxDate) + ")\n", inline=False)
+
         return embed
 
     def __createAggregateLogEmbed(self, title, description, userString, timeString, rankString):
@@ -221,10 +226,8 @@ class TimeLogger:
         discord.Embed
             Formatted information embedded into a message
         """
-
-        td = dt.timedelta(hours=6)
-        shiftedNow = datetime.today() + td
-        embed = discord.Embed(title=title, description=description, timestamp=shiftedNow)
+        now = datetime.today()
+        embed = discord.Embed(title=title, description=description, timestamp=now)
 
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
         embed.add_field(name="Rank", value=rankString)
@@ -303,8 +306,8 @@ class TimeLogger:
         else:
             d = {}
             for i in range(7):
-                date = l[i][0]
-                info = l[i][1]
+                date = listOfTimeVals[i][0]
+                info = listOfTimeVals[i][1]
 
                 if i == 0:
                     firstDate = str(date)
@@ -338,6 +341,9 @@ class TimeLogger:
         """
 
         s = ""
+
+        if val == 0:
+            return '0 mins '
 
         days = val // (24*60)
         hrs = (val - days * (24*60)) // 60
