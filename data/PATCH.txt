@@ -1,2 +1,2 @@
-v2.3
-  BIG Moves, saved kirbecBot
+v1.0
+  Kirbec Bot
