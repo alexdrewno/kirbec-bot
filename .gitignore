@@ -1,0 +1,8 @@
+/DiscordBot/LeagueOfLegendsInfo.py
+/DiscordBot/__pycache__
+.DS_Store
+.env
+firebase_config.json
+firebase_config_live.json
+Procfile
+
