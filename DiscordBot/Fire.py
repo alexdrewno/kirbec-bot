@@ -114,6 +114,32 @@ class Fire:
             print("FetchAllDateTimes Error")
             return {}
 
+    def fetchDiscordPoints(self, guild):
+        """
+        Fetch all members' discord points in the server
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+
+        Returns
+        ----------
+        dict: { discord.member.id: int }
+        """
+
+        try:
+            doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
+            d = doc_ref.get().to_dict()
+
+            if d == None:
+                return {}
+
+            return d
+        except:
+            print('Error in fetchDiscordPoints')
+            return {}
+
     def incrementTimes(self, guild, members):
         """
         Increment time accumulation for *total* and *day* in __db
@@ -173,7 +199,7 @@ class Fire:
         """
 
         td = dt.timedelta(hours=6)
-        shiftedNow = datetime.today() + td
+        shiftedNow = datetime.today() - td
         curDateStr = shiftedNow.strftime('%m/%d/%Y')
 
         doc_ref = self.__db.collection(str(guild.id)).document('date')
@@ -195,3 +221,29 @@ class Fire:
         allDateTimes[curDateStr] = d
 
         doc_ref.set(allDateTimes)
+
+    def __increaseDiscordPoints(self, guild, members):
+        """
+        Increase discord points for each user in the discord
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that the members belong to
+        members : list(discord.Member)
+            Update times for these users
+        """
+        doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
+
+        d = self.fetchDiscordPoints(guild)
+
+        if d == None:
+            d = {}
+
+        for member in members:
+            if str(member.id) in d:
+                d[str(member.id)] += 1
+            else:
+                d[str(member.id)] = 1
+
+        doc_ref.set(d)
