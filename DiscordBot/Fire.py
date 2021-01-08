@@ -173,7 +173,7 @@ class Fire:
         """
 
         td = dt.timedelta(hours=6)
-        shiftedNow = datetime.today() + td
+        shiftedNow = datetime.today() - td
         curDateStr = shiftedNow.strftime('%m/%d/%Y')
 
         doc_ref = self.__db.collection(str(guild.id)).document('date')
