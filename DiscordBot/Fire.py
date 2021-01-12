@@ -157,6 +157,7 @@ class Fire:
 
         self.__updateTotalTimes(guild, members)
         self.__updateDayTimes(guild, members)
+        self.__increaseDiscordPoints(guild, members)
 
     def __updateTotalTimes(self, guild, members):
         """

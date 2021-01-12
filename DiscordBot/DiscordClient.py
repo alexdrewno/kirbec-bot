@@ -4,6 +4,7 @@ import asyncio
 from Fire import Fire
 from TimeLogger import TimeLogger
 from MiscCommands import MiscCommands
+from DiscordPoints import DiscordPoints
 
 class DiscordClient(discord.Client):
     """
@@ -31,6 +32,7 @@ class DiscordClient(discord.Client):
     sharedFire = None
     timeLogger = None
     miscCommands = None
+    discordPoints = None
 
     async def on_ready(self):
         """
@@ -41,6 +43,7 @@ class DiscordClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
         self.sharedFire = Fire()
         self.timeLogger = TimeLogger(self.sharedFire)
+        self.discordPoints = DiscordPoints(self.sharedFire)
         self.miscCommands = MiscCommands()
         self.loop.create_task(self.__track_time())
 
@@ -133,3 +136,12 @@ class DiscordClient(discord.Client):
 
             elif message.content.startswith('-mylog'):
                 await message.channel.send(embed=self.timeLogger.getMyLogEmbed(message.guild, message.author))
+
+            # ---------- MARK: - DiscordPoints Commands ----------
+            elif message.content.startswith('-points'):
+                    msg = message.content
+                    msgAndPage = msg.split(" ")
+                    if len(msgAndPage) == 2:
+                        await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(int(msgAndPage[1]), message.guild))
+                    else:
+        	            await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(1, message.guild))
