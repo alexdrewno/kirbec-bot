@@ -2,9 +2,9 @@ import discord
 import asyncio
 
 from Fire import Fire
-from TimeLogger import TimeLogger
-from MiscCommands import MiscCommands
-from DiscordPoints import DiscordPoints
+from Commands.TimeLogger import TimeLogger
+from Commands.MiscCommands import MiscCommands
+from Commands.DiscordPoints import DiscordPoints
 
 class DiscordClient(discord.Client):
     """

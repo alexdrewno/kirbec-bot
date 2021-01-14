@@ -4,4 +4,5 @@
 .env
 firebase_config.json
 firebase_config_live.json
+/DiscordBot/Commands/__pycache__/*
 
