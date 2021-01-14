@@ -139,9 +139,24 @@ class DiscordClient(discord.Client):
 
             # ---------- MARK: - DiscordPoints Commands ----------
             elif message.content.startswith('-points'):
-                    msg = message.content
-                    msgAndPage = msg.split(" ")
-                    if len(msgAndPage) == 2:
-                        await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(int(msgAndPage[1]), message.guild))
+                msg = message.content
+                msgAndPage = msg.split(" ")
+                if len(msgAndPage) == 2:
+                    await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(int(msgAndPage[1]), message.guild))
+                else:
+    	            await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(1, message.guild))
+
+            elif message.content.startswith('-addreward'):
+                msg = message.content
+                commandAndReward = msg.split(" ", 1)
+
+                if (message.author.guild_permissions.administrator):
+                    if len(commandAndReward) == 2:
+                        await message.channel.send(embed=self.discordPoints.createNewReward(message.guild, commandAndReward[1]))
                     else:
-        	            await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(1, message.guild))
+                        await message.channel.send(embed=self.discordPoints.getUsageEmbed())
+                else:
+                    await message.channel.send(embed=self.discordPoints.getMissingPermissionsEmbed())
+
+            elif message.content.startswith('-rewards'):
+                await message.channel.send(embed=self.discordPoints.getRewardsEmbed(message.guild))

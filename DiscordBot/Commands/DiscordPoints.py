@@ -1,5 +1,6 @@
 from datetime import datetime
 import discord
+import itertools
 
 class DiscordPoints:
     """
@@ -11,7 +12,8 @@ class DiscordPoints:
 
     Functions
     __________
-
+    async getDiscordPointsEmbed(page, guild) -> (discord.Embed)
+        Makes an embedded message with total points for each user
     """
 
     fire = None
@@ -43,9 +45,58 @@ class DiscordPoints:
 
         title = "Discord Points"
 
-        return self.__createEmbed(title, description, userString, pointsString)
+        return self.__createPointsEmbed(title, description, userString, pointsString)
+
+    def createNewReward(self, guild, rewardString):
+        rewardStringList = ["".join(x) for _, x in itertools.groupby(rewardString, key=str.isdigit)]
+
+        if len(rewardStringList) < 2:
+            return self.getUsageEmbed()
+
+        try:
+            rewardCost = int(rewardStringList[len(rewardStringList)-1])
+            rewardTitle = self.__parseRewardStringList(rewardStringList)
+
+            self.fire.postNewReward(guild, rewardTitle, rewardCost)
+
+            return self.getRewardsEmbed(guild)
+        except:
+            return self.getUsageEmbed()
+
+    def getMissingPermissionsEmbed(self):
+        now = datetime.today()
+        embed = discord.Embed(title="Sorry!", description="", timestamp=now)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Missing Permissions", value="Oops.. you have to be an admin to use this command")
+
+        return embed
 
 
+    def getRewardsEmbed(self, guild):
+        rewards_dict = self.fire.fetchAllRewards(guild)
+
+        if rewards_dict == {}:
+            return self.__noRewardsEmbed(guild)
+
+        rewardsList = [(k, rewards_dict[k]) for k in sorted(rewards_dict, key=rewards_dict.get, reverse=True)]
+
+        idString, rewardsString, costsString = self.__getRewardsEmbedStrings(rewardsList)
+
+        return self.__createRewardsEmbed(idString, rewardsString, costsString)
+
+
+    def getUsageEmbed(self):
+        now = datetime.today()
+        embed = discord.Embed(title="Oops!", description="", timestamp=now)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Usage", value="-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500")
+
+        return embed
+
+
+    # ---------- MARK: - Private Functions ----------
     async def __createdEmbedStrings(self, guild, sortedList, page):
         """
         Private helper function to create strings for the embedded message
@@ -91,7 +142,7 @@ class DiscordPoints:
 
         return userString, pointsString, description
 
-    def __createEmbed(self, title, description, userString, pointsString):
+    def __createPointsEmbed(self, title, description, userString, pointsString):
         """
         Formats information into an embedded message
 
@@ -121,3 +172,45 @@ class DiscordPoints:
         embed.add_field(name="Discord Points", value=pointsString)
 
         return embed
+
+
+    def __noRewardsEmbed(self, guild):
+        now = datetime.today()
+        embed = discord.Embed(title="Oops!", description="", timestamp=now)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="No Rewards Set Yet!", value="To add a reward:\n-addreward [Desired Reward] [Price of the Reward]")
+
+        return embed
+
+    def __getRewardsEmbedStrings(self, rewardsList):
+        idString = ""
+        rewardString = ""
+        costString = ""
+
+        for i in range(len(rewardsList)):
+            idString += str(i+1) + "\n"
+            rewardString += str(rewardsList[i][0]) + "\n"
+            costString += str(rewardsList[i][1]) + "\n"
+
+        return idString, rewardString, costString
+
+    def __createRewardsEmbed(self, idString, rewardString, costString):
+        title = "Discord Point Rewards"
+        description = ""
+        now = datetime.today()
+        embed = discord.Embed(title=title, description=description, timestamp=now)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="ID", value=idString)
+        embed.add_field(name="Reward", value=rewardString)
+        embed.add_field(name="Price", value=costString)
+
+        return embed
+
+    def __parseRewardStringList(self, rewardStringList):
+        s = ""
+        for i in range(len(rewardStringList)-1):
+            s += rewardStringList[i]
+
+        return s

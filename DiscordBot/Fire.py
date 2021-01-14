@@ -26,6 +26,8 @@ class Fire:
         Fetch total time for members in the guild
     fetchAllDateTimes(guild) -> dict: { date: { discord.member.id: int } }
         Fetch all members' times organized by date
+    fetchDiscordPoints(guild) -> dict: { discord.member.id: int }
+        Fetch all members' discord points for the server
     """
 
     __db = None
@@ -159,6 +161,49 @@ class Fire:
         self.__updateDayTimes(guild, members)
         self.__increaseDiscordPoints(guild, members)
 
+    def postNewReward(self, guild, rewardTitle, rewardCost):
+        """
+        Pushes a new reward to the database
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get info from
+        rewardTitle : string
+            A string representing the new award
+        rewardCost : int
+            The cost of the reward
+        """
+        doc_ref = self.__db.collection(str(guild.id)).document('rewards')
+
+        rewards_dict = self.fetchAllRewards(guild)
+        rewards_dict[rewardTitle] = rewardCost
+
+        doc_ref.set(rewards_dict)
+
+
+    def fetchAllRewards(self, guild):
+        """
+        Shows all Discord Points rewards for the guild
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get info from
+        """
+        try:
+            doc_ref = self.__db.collection(str(guild.id)).document('rewards')
+            d = doc_ref.get().to_dict()
+            
+            if d == None:
+                return {}
+
+            return d
+        except:
+            return {}
+
+
+# ---------- MARK: - Private Methods ----------
     def __updateTotalTimes(self, guild, members):
         """
         Increment time accumulation for *total* in __db
