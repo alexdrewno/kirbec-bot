@@ -33,7 +33,7 @@ class DiscordPoints:
         Returns
         ----------
         discord.Embed
-            Embedded message of times today for each user
+            Embedded message of Discord Points for each member of the guild
         """
         d = self.fire.fetchDiscordPoints(guild)
 
@@ -48,6 +48,22 @@ class DiscordPoints:
         return self.__createPointsEmbed(title, description, userString, pointsString)
 
     def createNewReward(self, guild, rewardString):
+        """
+        Create new reward for the guild
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+        rewardString : string
+            String with the reward title and cost
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message of the updated rewards for the server
+        """
+
         rewardStringList = ["".join(x) for _, x in itertools.groupby(rewardString, key=str.isdigit)]
 
         if len(rewardStringList) < 2:
@@ -64,6 +80,15 @@ class DiscordPoints:
             return self.getUsageEmbed()
 
     def getMissingPermissionsEmbed(self):
+        """
+        Show a message saying that the user does not have the correct permissions
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message saying the user doesn't have the correct permissions
+        """
+
         now = datetime.today()
         embed = discord.Embed(title="Sorry!", description="", timestamp=now)
 
@@ -74,6 +99,20 @@ class DiscordPoints:
 
 
     def getRewardsEmbed(self, guild):
+        """
+        Get all of the current rewards for the guild
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message with all of the rewards for the guild
+        """
+
         rewards_dict = self.fire.fetchAllRewards(guild)
 
         if rewards_dict == {}:
@@ -87,6 +126,20 @@ class DiscordPoints:
 
 
     def getUsageEmbed(self):
+        """
+        Show the usage for addReward
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message with the usage for addReward
+        """
+
         now = datetime.today()
         embed = discord.Embed(title="Oops!", description="", timestamp=now)
 
@@ -164,6 +217,7 @@ class DiscordPoints:
         discord.Embed
             Formatted information embedded into a message
         """
+
         now = datetime.today()
         embed = discord.Embed(title=title, description=description, timestamp=now)
 
@@ -175,6 +229,20 @@ class DiscordPoints:
 
 
     def __noRewardsEmbed(self, guild):
+        """
+        Private function that shows that there are no rewards yet for the guild
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message that states no rewards are in the guild
+        """
+
         now = datetime.today()
         embed = discord.Embed(title="Oops!", description="", timestamp=now)
 
@@ -184,6 +252,24 @@ class DiscordPoints:
         return embed
 
     def __getRewardsEmbedStrings(self, rewardsList):
+        """
+        Private function that gets formatted strings for the list of rewards
+
+        Parameters
+        ----------
+        rewardsList: [(reward_title_0, cost_0)...]
+            List of rewards sorted by the highest cost
+
+        Returns
+        ----------
+        idString: string
+            String representing the id's of the rewards separated by '\n'
+        rewardString: string
+            String representing the title of the rewards separated by '\n'
+        costString: string
+            String representing the costs of the rewards separated by '\n'
+        """
+
         idString = ""
         rewardString = ""
         costString = ""
@@ -196,6 +282,24 @@ class DiscordPoints:
         return idString, rewardString, costString
 
     def __createRewardsEmbed(self, idString, rewardString, costString):
+        """
+        Private function to help create a rewards embed
+
+        Parameters
+        ----------
+        idString: string
+            String representing the id's of the rewards separated by '\n'
+        rewardString: string
+            String representing the title of the rewards separated by '\n'
+        costString: string
+            String representing the costs of the rewards separated by '\n'
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message that states all of the rewards
+        """
+
         title = "Discord Point Rewards"
         description = ""
         now = datetime.today()
@@ -209,6 +313,19 @@ class DiscordPoints:
         return embed
 
     def __parseRewardStringList(self, rewardStringList):
+        """
+        Private function to recreate reward title
+
+        Parameters
+        ----------
+        rewardStringList: list(String)
+            List of strings representing the title
+
+        Returns
+        ----------
+        s: string
+            The reward title string
+        """
         s = ""
         for i in range(len(rewardStringList)-1):
             s += rewardStringList[i]
