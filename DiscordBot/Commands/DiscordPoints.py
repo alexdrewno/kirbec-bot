@@ -1,6 +1,7 @@
 from datetime import datetime
 import discord
 import itertools
+from .utils import formatString, getUsageEmbed
 
 class DiscordPoints:
     """
@@ -14,6 +15,8 @@ class DiscordPoints:
     __________
     async getDiscordPointsEmbed(page, guild) -> (discord.Embed)
         Makes an embedded message with total points for each user
+    def createNewReward(guild, rewardString) -> (discord.Embed)
+        Adds a reward and returns the updated list of rewards as an embedded msg
     """
 
     fire = None
@@ -67,7 +70,7 @@ class DiscordPoints:
         rewardStringList = ["".join(x) for _, x in itertools.groupby(rewardString, key=str.isdigit)]
 
         if len(rewardStringList) < 2:
-            return self.getUsageEmbed()
+            return getUsageEmbed("-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500")
 
         try:
             rewardCost = int(rewardStringList[len(rewardStringList)-1])
@@ -77,26 +80,7 @@ class DiscordPoints:
 
             return self.getRewardsEmbed(guild)
         except:
-            return self.getUsageEmbed()
-
-    def getMissingPermissionsEmbed(self):
-        """
-        Show a message saying that the user does not have the correct permissions
-
-        Returns
-        ----------
-        discord.Embed
-            Embedded message saying the user doesn't have the correct permissions
-        """
-
-        now = datetime.today()
-        embed = discord.Embed(title="Sorry!", description="", timestamp=now)
-
-        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
-        embed.add_field(name="Missing Permissions", value="Oops.. you have to be an admin to use this command")
-
-        return embed
-
+            return getUsageEmbed("-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500")
 
     def getRewardsEmbed(self, guild):
         """
@@ -123,31 +107,6 @@ class DiscordPoints:
         idString, rewardsString, costsString = self.__getRewardsEmbedStrings(rewardsList)
 
         return self.__createRewardsEmbed(idString, rewardsString, costsString)
-
-
-    def getUsageEmbed(self):
-        """
-        Show the usage for addReward
-
-        Parameters
-        ----------
-        guild : discord.Guild
-            The server that we want to get information from
-
-        Returns
-        ----------
-        discord.Embed
-            Embedded message with the usage for addReward
-        """
-
-        now = datetime.today()
-        embed = discord.Embed(title="Oops!", description="", timestamp=now)
-
-        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
-        embed.add_field(name="Usage", value="-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500")
-
-        return embed
-
 
     # ---------- MARK: - Private Functions ----------
     async def __createdEmbedStrings(self, guild, sortedList, page):
@@ -275,9 +234,11 @@ class DiscordPoints:
         costString = ""
 
         for i in range(len(rewardsList)):
-            idString += str(i+1) + "\n"
-            rewardString += str(rewardsList[i][0]) + "\n"
-            costString += str(rewardsList[i][1]) + "\n"
+            numLines, formattedRewardString = formatString(str(rewardsList[i][0]))
+
+            idString += str(i+1) + ("\n" * numLines)
+            rewardString += formattedRewardString + "\n"
+            costString += str(rewardsList[i][1]) + ("\n" * numLines)
 
         return idString, rewardString, costString
 
