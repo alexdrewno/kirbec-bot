@@ -194,13 +194,28 @@ class Fire:
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('rewards')
             d = doc_ref.get().to_dict()
-            
+
             if d == None:
                 return {}
 
             return d
         except:
             return {}
+
+    def postNewBet(self, guild, user, betString, betAmount):
+        try:
+            doc_ref = self.__db.collection(str(guild.id)).document('bets')
+
+            doc_ref.add({
+                'startedBy': str(user),
+                'acceptedBy': "",
+                'betDescription': betString,
+                'betAmount': str(betAmount),
+            })
+        except Exception as e:
+            print(e)
+            print("Error posting new bet to Firebase")
+
 
 
 # ---------- MARK: - Private Methods ----------

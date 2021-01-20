@@ -5,6 +5,8 @@ from Fire import Fire
 from Commands.TimeLogger import TimeLogger
 from Commands.MiscCommands import MiscCommands
 from Commands.DiscordPoints import DiscordPoints
+from Commands.DiscordBets import DiscordBets
+from Commands.utils import *
 
 class DiscordClient(discord.Client):
     """
@@ -33,6 +35,7 @@ class DiscordClient(discord.Client):
     timeLogger = None
     miscCommands = None
     discordPoints = None
+    discordBets = None
 
     async def on_ready(self):
         """
@@ -44,6 +47,7 @@ class DiscordClient(discord.Client):
         self.sharedFire = Fire()
         self.timeLogger = TimeLogger(self.sharedFire)
         self.discordPoints = DiscordPoints(self.sharedFire)
+        self.discordBets = DiscordBets(self.sharedFire)
         self.miscCommands = MiscCommands()
         self.loop.create_task(self.__track_time())
 
@@ -154,9 +158,18 @@ class DiscordClient(discord.Client):
                     if len(commandAndReward) == 2:
                         await message.channel.send(embed=self.discordPoints.createNewReward(message.guild, commandAndReward[1]))
                     else:
-                        await message.channel.send(embed=self.discordPoints.getUsageEmbed())
+                        await message.channel.send(embed=getUsageEmbed("-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500"))
                 else:
-                    await message.channel.send(embed=self.discordPoints.getMissingPermissionsEmbed())
+                    await message.channel.send(embed=getMissingPermissionsEmbed("Oops.. you have to be an admin to use this command"))
 
             elif message.content.startswith('-rewards'):
                 await message.channel.send(embed=self.discordPoints.getRewardsEmbed(message.guild))
+
+            # ---------- MARK: - DiscordBet Commands ----------
+            elif message.content.startswith('-bet'):
+                msg = message.content
+                commandAndBet = msg.split(" ", 1)
+                if len(commandAndBet) == 2:
+                    self.discordBets.createBet(message.guild, message.author.id, commandAndBet[1])
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500"))
