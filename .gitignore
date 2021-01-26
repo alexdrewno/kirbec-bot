@@ -5,4 +5,5 @@
 firebase_config.json
 firebase_config_live.json
 /DiscordBot/Commands/__pycache__/*
+/kirbec-bot-archive/*
 

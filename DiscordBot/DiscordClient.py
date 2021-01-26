@@ -173,3 +173,6 @@ class DiscordClient(discord.Client):
                     self.discordBets.createBet(message.guild, message.author.id, commandAndBet[1])
                 else:
                     await message.channel.send(embed=getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500"))
+
+            elif message.content.startswith('-mybets'):
+                await message.channel.send(embed=self.discordBets.showBetForUser(message.guild, message.author))

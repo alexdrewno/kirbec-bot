@@ -202,16 +202,34 @@ class Fire:
         except:
             return {}
 
-    def postNewBet(self, guild, user, betString, betAmount):
+    def fetchAllBets(self, guild):
+        try:
+            doc_ref = self.__db.collection(str(guild.id)).document('bets')
+            d = doc_ref.get().to_dict()
+
+            if d == None:
+                return {}
+
+            return d
+        except:
+            return {}
+
+    def postNewBet(self, guild, user, betTitle, betAmount):
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
-            doc_ref.add({
-                'startedBy': str(user),
-                'acceptedBy': "",
-                'betDescription': betString,
-                'betAmount': str(betAmount),
-            })
+            d = self.fetchAllBets(guild)
+            bet_id = len(d) + 1
+
+            d[str(bet_id)] = {
+                "acceptedBy": "0",
+                "betTitle": betTitle,
+                "betAmount": str(betAmount),
+                "startedBy": user,
+                "completed": False,
+            }
+
+            doc_ref.set(d)
         except Exception as e:
             print(e)
             print("Error posting new bet to Firebase")

@@ -53,7 +53,7 @@ def getUsageEmbed(usageString):
     """
 
     now = datetime.today()
-    embed = discord.Embed(title="Oops!", description="", timestamp=now)
+    embed = discord.Embed(title="Oops!", description="", timestamp=now, colour=discord.Colour.orange())
 
     embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
     embed.add_field(name="Usage", value=usageString)
@@ -71,7 +71,7 @@ def getMissingPermissionsEmbed(errorString):
     """
 
     now = datetime.today()
-    embed = discord.Embed(title="Sorry!", description="", timestamp=now)
+    embed = discord.Embed(title="Sorry!", description="", timestamp=now, colour=discord.Colour.red())
 
     embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
     embed.add_field(name="Missing Permissions", value=errorString)
