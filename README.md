@@ -1,8 +1,8 @@
-# KirbecBot
+# 🤖 KirbecBot
 **KirbecBot is an open source Discord Bot written in Python that currently logs the amount of the time users spend in the Discord server with many more features in progress**
 <br/>
 
-## Time-Logger Commands
+## ⏱️ Time-Logger Commands
 
 *Note: KirbecBot increases time only when the user is not AFK, deafened, or muted.*
 
@@ -12,7 +12,7 @@
 * ```-mylog :``` Shows personalized information for the user
 <br/>
 
-## Running KirbecBot on your local machine
+## 🚀 Running KirbecBot on your local machine
 
 ### Requirements & Dependencies
 * ```firebase-admin``` and your own Firebase database
@@ -31,7 +31,7 @@
 - ```python3 DiscordBot/main.py```
 <br/>
 
-## Additional Information
+## ℹ️ Additional Information
 
 ### Future Extensions
  - [ ] Adding graphs for time spent by user and discord
