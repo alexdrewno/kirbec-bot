@@ -79,7 +79,8 @@ class DiscordPoints:
             self.fire.postNewReward(guild, rewardTitle, rewardCost)
 
             return self.getRewardsEmbed(guild)
-        except:
+        except Exception as e:
+            print("ERROR ", e)
             return getUsageEmbed("-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500")
 
     def getRewardsEmbed(self, guild):
@@ -107,6 +108,53 @@ class DiscordPoints:
         idString, rewardsString, costsString = self.__getRewardsEmbedStrings(rewardsList)
 
         return self.__createRewardsEmbed(idString, rewardsString, costsString)
+
+    def redeemReward(self, guild, user, reward_id):
+        """
+        Redeems the desired reward with DiscordPoints
+        [@Todo: Ping Users associated with the reward]
+
+        Parameters
+        ----------
+        guild     : discord.Guild
+            The server that we want to get information from
+        user      : discord.Member if in guild, discord.User otherwise
+            The user that redeemed the reward
+        reward_id : Int
+            The id of the reward to redeem
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message with the redeemed reward
+        """
+
+        points_dict = self.fire.fetchDiscordPoints(guild)
+        rewards_dict = self.fire.fetchAllRewards(guild)
+        rewards_list = [(k, rewards_dict[k]) for k in sorted(rewards_dict, key=rewards_dict.get, reverse=True)]
+
+        try:
+            # Check to see if the reward_id is within the list of rewards
+            if int(reward_id) > len(rewards_list) or int(reward_id) < 1:
+                return self.__createNotARewardEmbed()
+
+            reward_title = rewards_list[int(reward_id) - 1][0]
+            reward_cost = rewards_list[int(reward_id) - 1][1]
+
+            #Check to see if the user has enough points to redeem the reward
+            if points_dict[str(user.id)] and points_dict[str(user.id)] < reward_cost:
+                return self.__createNotEnoughPointsEmbed(user, points_dict[str(user.id)])
+            else:
+                new_points = points_dict[str(user.id)] - reward_cost
+
+                self.fire.postNewDiscordPoints(guild, str(user.id), new_points)
+
+                return self.__createRedeemRewardEmbed(reward_title, reward_cost, user, new_points)
+        except Exception as e:
+            print(e)
+            return getUsageEmbed("-redeemReward [Desired Reward Id]\n\nexample: -redeemReward 3")
+
+
 
     # ---------- MARK: - Private Functions ----------
     async def __createdEmbedStrings(self, guild, sortedList, page):
@@ -270,6 +318,90 @@ class DiscordPoints:
         embed.add_field(name="ID", value=idString)
         embed.add_field(name="Reward", value=rewardString)
         embed.add_field(name="Price", value=costString)
+
+        return embed
+
+    def __createRedeemRewardEmbed(self, reward_title, reward_cost, user, new_points):
+        """
+        Private function to help create a redeem reward embed
+
+        Parameters
+        ----------
+        reward_title: string
+            Title of the reward to be redeemed
+        reward_cost : int
+            Cost of the reward to be redeemed
+        user        : discord.Member if in guild, discord.User otherwise
+            User_id of the user that redeemed the reward
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message that states the redeemed reward
+        """
+
+        title = "Reward Redeemed"
+        description = ""
+        now = datetime.today()
+        embed = discord.Embed(title=title, description=description, timestamp=now)
+
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Reward", value=reward_title, inline=False)
+        embed.add_field(name="Price", value=reward_cost, inline=False)
+        embed.add_field(name="Points Remaining", value=str(new_points), inline=False)
+
+        return embed
+
+    def __createNotEnoughPointsEmbed(self, user, user_points):
+        """
+        Private function to help create a not enough points embed message
+
+        Parameters
+        ----------
+        user_points : int
+            The amount of points that the user currently has
+        user        : discord.Member if in guild, discord.User otherwise
+            User that try to redeem the reward
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message that states that the user doesn't have enough points
+        """
+
+        title = "Oops!"
+        description = ""
+        now = datetime.today()
+        embed = discord.Embed(title=title, description=description, timestamp=now, colour=discord.Colour.red())
+
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Not enough points", value="You have: " + str(user_points))
+
+        return embed
+
+    def __createNotARewardEmbed(self):
+        """
+        Private function to help create a "invalid reward id" embed
+
+        Returns
+        ----------
+        discord.Embed
+            Embedded message that states that the reward id is invalid
+        """
+
+        title = "Oops!"
+        description = ""
+        now = datetime.today()
+        embed = discord.Embed(title=title, description=description, timestamp=now, colour=discord.Colour.red())
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Not a reward", value="Please enter a valid reward id")
 
         return embed
 

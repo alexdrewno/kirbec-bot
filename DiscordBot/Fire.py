@@ -88,6 +88,27 @@ class Fire:
             print('Error in fetchTotalTimes')
             return {}
 
+
+    def incrementTimes(self, guild, members):
+        """
+        Increment time accumulation for *total* and *day* in __db
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that the members belong to
+        members : list(discord.Member)
+            Update times for these users
+        """
+
+        if members == None or members == []:
+            return
+
+        self.__updateTotalTimes(guild, members)
+        self.__updateDayTimes(guild, members)
+        self.__increaseDiscordPoints(guild, members)
+
+
     def fetchAllDateTimes(self, guild):
         """
         Fetch all members' times organized by date
@@ -116,6 +137,7 @@ class Fire:
             print("FetchAllDateTimes Error")
             return {}
 
+# --------------------- Discord Points --------------------------
     def fetchDiscordPoints(self, guild):
         """
         Fetch all members' discord points in the server
@@ -142,24 +164,32 @@ class Fire:
             print('Error in fetchDiscordPoints')
             return {}
 
-    def incrementTimes(self, guild, members):
+    def postNewDiscordPoints(self, guild, user, newPoints):
         """
-        Increment time accumulation for *total* and *day* in __db
+        Updates the discord points for a user
 
         Parameters
         ----------
-        guild : discord.Guild
-            The server that the members belong to
-        members : list(discord.Member)
-            Update times for these users
+        guild     : discord.Guild
+            The server that we want to push information to
+        user      : discord.Member if in guild, discord.User otherwise
+            The user whose points should be updated
+        newPoints : int
+            The updated amount of points the user should have
         """
+        try:
+            doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
+            d = doc_ref.get().to_dict()
 
-        if members == None or members == []:
-            return
+            if d == None:
+                return {}
 
-        self.__updateTotalTimes(guild, members)
-        self.__updateDayTimes(guild, members)
-        self.__increaseDiscordPoints(guild, members)
+            d[user] = newPoints
+
+            doc_ref.set(d)
+        except:
+            print('Error in postNewDiscordPoints')
+            return {}
 
     def postNewReward(self, guild, rewardTitle, rewardCost):
         """
@@ -202,6 +232,7 @@ class Fire:
         except:
             return {}
 
+# ---------------------- Discord Bets ---------------------------
     def fetchAllBets(self, guild):
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')

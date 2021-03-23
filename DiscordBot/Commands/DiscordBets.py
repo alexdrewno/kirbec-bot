@@ -44,7 +44,6 @@ class DiscordBets:
             return self.__createNoBetsEmbed()
 
 
-
     # ---------- MARK: - Private Methods ----------
     def __createBetEmbed(self, curBetDict, user):
         now = datetime.today()

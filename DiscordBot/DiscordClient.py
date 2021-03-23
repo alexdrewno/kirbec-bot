@@ -165,6 +165,15 @@ class DiscordClient(discord.Client):
             elif message.content.startswith('-rewards'):
                 await message.channel.send(embed=self.discordPoints.getRewardsEmbed(message.guild))
 
+            elif message.content.startswith('-redeem'):
+                msg = message.content
+                commandAndRewardId = msg.split(" ")
+
+                if len(commandAndRewardId) == 2:
+                    await message.channel.send(embed=self.discordPoints.redeemReward(message.guild, message.author, commandAndRewardId[1]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-redeemReward [Desired Reward Id]\n\nexample: -redeemReward 3"))
+
             # ---------- MARK: - DiscordBet Commands ----------
             elif message.content.startswith('-bet'):
                 msg = message.content
