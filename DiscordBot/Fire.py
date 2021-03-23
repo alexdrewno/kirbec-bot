@@ -250,14 +250,16 @@ class Fire:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
             d = self.fetchAllBets(guild)
-            bet_id = len(d) + 1
+            bet_id = dt.datetime.now().strftime('%Y%m%d%H%M%S%f')
+
 
             d[str(bet_id)] = {
-                "acceptedBy": "0",
+                "acceptedBy": "",
                 "betTitle": betTitle,
                 "betAmount": str(betAmount),
                 "startedBy": user,
                 "completed": False,
+                "betId" : bet_id,
             }
 
             doc_ref.set(d)

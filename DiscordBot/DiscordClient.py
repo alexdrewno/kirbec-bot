@@ -179,7 +179,9 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
                 if len(commandAndBet) == 2:
-                    self.discordBets.createBet(message.guild, message.author.id, commandAndBet[1])
+                    sent_message = await message.channel.send(embed=self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
+                    await sent_message.add_reaction('✅')
+                    await sent_message.add_reaction('❌')
                 else:
                     await message.channel.send(embed=getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500"))
 
