@@ -6,10 +6,10 @@
 
 *Note: KirbecBot increases time only when the user is not AFK, deafened, or muted.*
 
-* ```-todaylog:``` Shows the amount of time spent in the Discord server today (12:00AM to 11:59PM)
-* ```-weeklog :``` Shows the amount of time spent in the Discord server for the past week
-* ```-totallog:``` Shows the amount of time spent in the Discord server that has been logged by KirbecBot
-* ```-mylog :``` Shows personalized information for the user
+* ```-todaylog``` Shows the amount of time spent in the Discord server today (12:00AM to 11:59PM)
+* ```-weeklog``` Shows the amount of time spent in the Discord server for the past week
+* ```-totallog``` Shows the amount of time spent in the Discord server that has been logged by KirbecBot
+* ```-mylog``` Shows personalized information for the user
 <br/>
 
 ## 🚀 Running KirbecBot on your local machine
