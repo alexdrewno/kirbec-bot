@@ -1,5 +1,6 @@
 import discord
 import itertools
+import re
 
 from datetime import datetime
 from .utils import *
@@ -16,20 +17,27 @@ class DiscordBets:
         self.fire = fire
 
     def createBet(self, guild, user, messageString):
-        messageStringList = ["".join(x) for _, x in itertools.groupby(messageString, key=str.isdigit)]
+        messageAndOptions = re.findall("\[(.*?)\]", messageString)
 
-        if len(messageStringList) < 2:
-            return getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500")
+        if len(messageAndOptions) != 2:
+            return getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]")
 
         try:
-            betAmount = int(messageStringList[len(messageStringList)-1])
-            betTitle = self.__parseTitleStringList(messageStringList)
+            betTitle = messageAndOptions[0]
+            betOptionsList = messageAndOptions[1].split(',')
+            betOptionsList.sort()
+            betId = datetime.now().strftime('%d%H%M%S%f')
 
-            self.fire.postNewBet(guild, user.id, betTitle, betAmount)
+            betOptions = {}
+            for option in betOptionsList:
+                betOptions[option] = 0
 
-            return self.__createBetEmbed(guild, user, betTitle, betAmount)
-        except:
-            return getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500")
+            self.fire.postNewBet(guild, user.id, betTitle, betOptions, betId)
+
+            return self.__createBetEmbed(guild, user, betTitle, betOptions, betId)
+        except Exception as e:
+            print(e)
+            return getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]")
 
     def showBetForUser(self, guild, user):
         betDict = self.fire.fetchAllBets(guild)
@@ -46,15 +54,18 @@ class DiscordBets:
             return self.__createNoBetsEmbed()
 
     # ---------- MARK: - Private Methods ----------
-    def __createBetEmbed(self, guild, user, betTitle, betAmount):
+    def __createBetEmbed(self, guild, user, betTitle, betOptions, betId):
+        idString, titleString, amountString = self.__createBetOptionsStrings(betOptions)
         now = datetime.today()
-        embed = discord.Embed(title="My Bets", description=" ", timestamp=now)
+        embed = discord.Embed(title=betTitle, description="Bet Id: " + betId, timestamp=now)
+        embed.set_thumbnail(url=user.avatar_url)
 
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
-        embed.add_field(name="Bet Title", value=betTitle, inline=False)
-        embed.add_field(name="Bet Amount", value=str(betAmount), inline=False)
-        embed.add_field(name="Voting", value="To vote, react below.", inline=False)
+        embed.add_field(name="Num", value=idString)
+        embed.add_field(name="Option", value=titleString)
+        embed.add_field(name="Total Amount Bet", value=amountString)
+        embed.add_field(name="To Bet:", value="-bet [bet id] [option number] [discord points amount]")
 
         return embed
 
@@ -78,22 +89,16 @@ class DiscordBets:
 
         return embed
 
-    def __parseTitleStringList(self, betTitleStringList):
-        """
-        Private function to recreate bet title
+    def __createBetOptionsStrings(self, betOptions):
+        betOptionIds = ""
+        betOptionTitles = ""
+        betOptionTotalAmount = ""
+        
+        betOptionKeys = list(betOptions.keys())
 
-        Parameters
-        ----------
-        rewardStringList: list(String)
-            List of strings representing the title
+        for i in range(len(betOptionKeys)):
+            betOptionIds += str(i+1) + "\n"
+            betOptionTitles += betOptionKeys[i] + "\n"
+            betOptionTotalAmount += str(betOptions[betOptionKeys[i]]) + "\n"
 
-        Returns
-        ----------
-        s: string
-            The bet title string
-        """
-        s = ""
-        for i in range(len(betTitleStringList)-1):
-            s += betTitleStringList[i]
-
-        return s
+        return betOptionIds, betOptionTitles, betOptionTotalAmount

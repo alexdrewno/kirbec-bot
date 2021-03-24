@@ -245,21 +245,20 @@ class Fire:
         except:
             return {}
 
-    def postNewBet(self, guild, user, betTitle, betAmount):
+    def postNewBet(self, guild, user, betTitle, betOptions, betId):
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
             d = self.fetchAllBets(guild)
-            bet_id = dt.datetime.now().strftime('%Y%m%d%H%M%S%f')
 
 
-            d[str(bet_id)] = {
-                "acceptedBy": "",
+            d[str(betId)] = {
+                "acceptedBy": {},
+                "options": betOptions,
                 "betTitle": betTitle,
-                "betAmount": str(betAmount),
                 "startedBy": user,
                 "completed": False,
-                "betId" : bet_id,
+                "betId" : betId,
             }
 
             doc_ref.set(d)

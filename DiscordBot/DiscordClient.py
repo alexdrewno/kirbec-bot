@@ -134,7 +134,7 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 msgAndPage = msg.split(" ")
                 if len(msgAndPage) == 2:
-                    await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(int(msgAndPage[1], message.guild)))
+                    await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(int(msgAndPage[1]), message.guild))
                 else:
                     await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(1, message.guild))
 
@@ -175,15 +175,13 @@ class DiscordClient(discord.Client):
                     await message.channel.send(embed=getUsageEmbed("-redeemReward [Desired Reward Id]\n\nexample: -redeemReward 3"))
 
             # ---------- MARK: - DiscordBet Commands ----------
-            elif message.content.startswith('-bet'):
+            elif message.content.startswith('-createbet'):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
                 if len(commandAndBet) == 2:
-                    sent_message = await message.channel.send(embed=self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
-                    await sent_message.add_reaction('✅')
-                    await sent_message.add_reaction('❌')
+                    await message.channel.send(embed=self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
                 else:
-                    await message.channel.send(embed=getUsageEmbed("-bet [Bet Description] [Bet Amount]\n\nexample: -bet I will win this game 500"))
+                    await message.channel.send(embed=getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]"))
 
             elif message.content.startswith('-mybets'):
                 await message.channel.send(embed=self.discordBets.showBetForUser(message.guild, message.author))
