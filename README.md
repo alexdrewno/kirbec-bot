@@ -38,8 +38,9 @@
  - [ ] Logging time by channel
  - [ ] Extending the bot beyond time-logging
  
-### Documentation
-This project uses [The numpy docstring guide](https://numpydoc.readthedocs.io/en/latest/format.html) for documentation formatting and styling. 
+### Documentation & Styling
+- This project uses [The numpy docstring guide](https://numpydoc.readthedocs.io/en/latest/format.html) for documentation formatting and styling. 
+- [Pylint](https://www.pylint.org/) is used for code quality
 
 ### Comments
 > Thank you for checking out the project; please feel free to start a PR with any improvements/changes
