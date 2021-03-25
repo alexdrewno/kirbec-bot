@@ -38,7 +38,6 @@ class Fire:
             cred = credentials.Certificate(firebase_config_dict)
             firebase_admin.initialize_app(cred)
         self.__db = firestore.client()
-        collection = 'timeCollection'
 
     async def fetchAllMembers(self, guild):
         """
@@ -245,7 +244,7 @@ class Fire:
         except:
             return {}
 
-    def postNewBet(self, guild, user, betTitle, betOptions):
+    def postNewBet(self, guild, user, betTitle, betOptions, betStartedAt):
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
@@ -256,14 +255,14 @@ class Fire:
             else: 
                 d['numBets'] = 1
 
-            print(d['numBets'])
-
             d[str(d['numBets'])] = {
                 "acceptedBy": {},
                 "options": betOptions,
                 "betTitle": betTitle,
+                "startedAt": betStartedAt,
                 "startedBy": user,
                 "completed": False,
+                "closed": False,
                 "betId" : d['numBets'],
             }
 
@@ -275,6 +274,26 @@ class Fire:
             print("Error posting new bet to Firebase")
             
             return -1
+
+    def postCloseBet(self, guild, user, betId):
+        try:
+            bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
+            betDict = bet_doc_ref.get().to_dict()
+
+            if not betId in betDict:
+                return None, "Not a valid Bet Id"
+            if betDict[betId]['startedBy'] != user.id and not user.guild_permissions.administrator:
+                return None, "Only the person that started the bet or an admin can close submissions for the bet"
+
+            betDict[betId]["closed"] = True
+            bet_doc_ref.set(betDict)
+
+            return betDict[betId], None
+        except Exception as e:
+            print(e)
+            print("Error closing bet")
+
+            return None, "Error closing bet in the database"
 
     def postBet(self, guild, user, betId, betOption, betAmount):
         try:
@@ -289,14 +308,21 @@ class Fire:
                 return None, "Not discord points"
             elif not betId in betDict:
                 return None, "Not a valid Bet Id"
+            elif betDict[betId]["closed"]:
+                return None, "Bet no longer has open submissions"
             elif int(betOption) > len(betDict[betId]["options"]) or int(betOption) <= 0:
                 return None, "Not a valid Bet Option"
-            else:
-                # Bet options are sorted for Ids
+            elif userId in betDict[betId]["acceptedBy"]:
                 optionList = sorted(list(betDict[betId]["options"].keys()))
-                betDict[betId]["options"][optionList[int(betOption)-1]] += betAmount
-                betDict[betId]["acceptedBy"][userId] = {"betOption": optionList[int(betOption)-1], "amount": betAmount}
-                pointsDict[userId] = int(pointsDict[userId]) - betAmount
+    
+                if betDict[betId]["acceptedBy"][userId]["betOption"] != optionList[int(betOption)-1]:
+                    return None, "Cannot bet for more than one option"
+
+            # Bet options are sorted for Ids
+            optionList = sorted(list(betDict[betId]["options"].keys()))
+            betDict[betId]["options"][optionList[int(betOption)-1]] += betAmount
+            betDict[betId]["acceptedBy"][userId] = {"betOption": optionList[int(betOption)-1], "amount": betAmount}
+            pointsDict[userId] = int(pointsDict[userId]) - betAmount
 
             bet_doc_ref.set(betDict)
             points_doc_ref.set(pointsDict)

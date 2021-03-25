@@ -27,18 +27,28 @@ class DiscordBets:
             betTitle = messageAndOptions[0]
             betOptionsList = messageAndOptions[1].split(',')
             betOptionsList.sort()
-            betId = datetime.now().strftime('%d%H%M%S%f')
 
             betOptions = {}
             for option in betOptionsList:
                 betOptions[option] = 0
 
-            betId = self.fire.postNewBet(guild, user.id, betTitle, betOptions)
+            now = datetime.now()
+            betStartedAt = now.strftime("%H:%M on %m/%d/%Y")
 
-            return self.__createBetEmbed(guild, user, betTitle, betOptions, str(betId))
+            betId = self.fire.postNewBet(guild, user.id, betTitle, betOptions, betStartedAt)
+
+            return self.__createBetEmbed(guild, user, betTitle, betOptions, str(betId), "Open", betStartedAt)
         except Exception as e:
             print(e)
             return getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]")
+
+    def closeBet(self, guild, user, betId):
+        betDict, error = self.fire.postCloseBet(guild, user, str(betId))
+
+        if error:
+            return getOopsEmbed(error)
+        else:
+            return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Closed", betDict['startedAt'])
 
     def bet(self, guild, user, messageString):
         # BetList = [BetId, Option Number, Cost]
@@ -49,7 +59,7 @@ class DiscordBets:
             if error != None:
                 return getOopsEmbed(error)
             else:
-                return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']))
+                return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Open", betDict['startedAt'])
         else:
             return getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500")
 
@@ -68,17 +78,18 @@ class DiscordBets:
             return self.__createNoBetsEmbed()
 
     # ---------- MARK: - Private Methods ----------
-    def __createBetEmbed(self, guild, user, betTitle, betOptions, betId):
+    def __createBetEmbed(self, guild, user, betTitle, betOptions, betId, betStatus, betStartedAt):
         idString, titleString, amountString = self.__createBetOptionsStrings(betOptions)
         now = datetime.today()
-        embed = discord.Embed(title=betTitle, description="Bet Id: " + betId, timestamp=now)
-        embed.set_thumbnail(url=user.avatar_url)
+        embed = discord.Embed(title=betTitle, description="Created by: " + user.display_name, timestamp=now, colour=discord.Colour.purple())
 
-        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
-        embed.add_field(name="Num", value=idString)
-        embed.add_field(name="Option", value=titleString)
-        embed.add_field(name="Total Amount Bet", value=amountString)
+        embed.add_field(name="Bet Id", value=betId)
+        embed.add_field(name="Started At", value=betStartedAt)
+        embed.add_field(name="Status", value=betStatus, inline=True)
+        embed.add_field(name="Num", value=idString, inline=True)
+        embed.add_field(name="Option", value=titleString, inline=True)
+        embed.add_field(name="Total Amount Bet", value=amountString, inline=True)
         embed.add_field(name="To Bet:", value="-bet [bet id] [option number] [discord points amount]")
 
         return embed
@@ -108,7 +119,7 @@ class DiscordBets:
         betOptionTitles = ""
         betOptionTotalAmount = ""
         
-        betOptionKeys = list(betOptions.keys())
+        betOptionKeys = sorted(list(betOptions.keys()))
 
         for i in range(len(betOptionKeys)):
             betOptionIds += str(i+1) + "\n"

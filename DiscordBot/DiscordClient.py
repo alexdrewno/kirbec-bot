@@ -190,6 +190,14 @@ class DiscordClient(discord.Client):
                 else:
                     await message.channel.send(embed=getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]"))
 
+            elif message.content.startswith('-closebet'):
+                msg = message.content
+                commandAndBet = msg.split(" ")
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=self.discordBets.closeBet(message.guild, message.author, commandAndBet[1]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-closebet [Bet Id]"))
+
             elif message.content.startswith('-bet'):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
