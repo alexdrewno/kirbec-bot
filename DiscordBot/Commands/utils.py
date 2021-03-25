@@ -36,6 +36,14 @@ def formatString(oldStr):
 
     return numLines, newStr
 
+def getOopsEmbed(errorString):
+    now = datetime.today()
+    embed = discord.Embed(title="Oops!", description="", timestamp=now, colour=discord.Colour.red())
+
+    embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+    embed.add_field(name="There was an error", value=errorString)
+
+    return embed
 
 def getUsageEmbed(usageString):
     """

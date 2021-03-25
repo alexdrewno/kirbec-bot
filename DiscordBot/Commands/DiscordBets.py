@@ -33,12 +33,25 @@ class DiscordBets:
             for option in betOptionsList:
                 betOptions[option] = 0
 
-            self.fire.postNewBet(guild, user.id, betTitle, betOptions, betId)
+            betId = self.fire.postNewBet(guild, user.id, betTitle, betOptions)
 
-            return self.__createBetEmbed(guild, user, betTitle, betOptions, betId)
+            return self.__createBetEmbed(guild, user, betTitle, betOptions, str(betId))
         except Exception as e:
             print(e)
             return getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]")
+
+    def bet(self, guild, user, messageString):
+        # BetList = [BetId, Option Number, Cost]
+        betList = messageString.split(" ")
+        if len(betList) == 3:
+            betDict, error = self.fire.postBet(guild, user, betList[0], betList[1], int(betList[2]))
+        
+            if error != None:
+                return getOopsEmbed(error)
+            else:
+                return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']))
+        else:
+            return getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500")
 
     def showBetForUser(self, guild, user):
         betDict = self.fire.fetchAllBets(guild)
@@ -99,7 +112,7 @@ class DiscordBets:
 
         for i in range(len(betOptionKeys)):
             betOptionIds += str(i+1) + "\n"
-            betOptionTitles += betOptionKeys[i] + "\n"
+            betOptionTitles += str(betOptionKeys[i]) + "\n"
             betOptionTotalAmount += str(betOptions[betOptionKeys[i]]) + "\n"
 
         return betOptionIds, betOptionTitles, betOptionTotalAmount

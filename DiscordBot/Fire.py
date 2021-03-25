@@ -245,26 +245,69 @@ class Fire:
         except:
             return {}
 
-    def postNewBet(self, guild, user, betTitle, betOptions, betId):
+    def postNewBet(self, guild, user, betTitle, betOptions):
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
             d = self.fetchAllBets(guild)
 
+            if 'numBets' in d:
+                d['numBets'] = int(d['numBets']) + 1
+            else: 
+                d['numBets'] = 1
 
-            d[str(betId)] = {
+            print(d['numBets'])
+
+            d[str(d['numBets'])] = {
                 "acceptedBy": {},
                 "options": betOptions,
                 "betTitle": betTitle,
                 "startedBy": user,
                 "completed": False,
-                "betId" : betId,
+                "betId" : d['numBets'],
             }
 
             doc_ref.set(d)
+
+            return d['numBets']
         except Exception as e:
             print(e)
             print("Error posting new bet to Firebase")
+            
+            return -1
+
+    def postBet(self, guild, user, betId, betOption, betAmount):
+        try:
+            bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
+            points_doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
+
+            betDict = self.fetchAllBets(guild)
+            pointsDict = self.fetchDiscordPoints(guild)
+            userId = str(user.id)
+
+            if not userId in pointsDict or int(pointsDict[userId]) < betAmount:
+                return None, "Not discord points"
+            elif not betId in betDict:
+                return None, "Not a valid Bet Id"
+            elif int(betOption) > len(betDict[betId]["options"]) or int(betOption) <= 0:
+                return None, "Not a valid Bet Option"
+            else:
+                # Bet options are sorted for Ids
+                optionList = sorted(list(betDict[betId]["options"].keys()))
+                betDict[betId]["options"][optionList[int(betOption)-1]] += betAmount
+                betDict[betId]["acceptedBy"][userId] = {"betOption": optionList[int(betOption)-1], "amount": betAmount}
+                pointsDict[userId] = int(pointsDict[userId]) - betAmount
+
+            bet_doc_ref.set(betDict)
+            points_doc_ref.set(pointsDict)
+
+            return betDict[betId], None
+            
+        except Exception as e:
+            print(e)
+            print("Error posting bet to Firebase")
+
+            return None, "Error sending information to the database"
 
     # -------------  Misc. Functions -----------------------
     def postFeedback(self, guild, user, feedbackString):
