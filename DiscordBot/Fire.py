@@ -262,6 +262,7 @@ class Fire:
                 "startedAt": betStartedAt,
                 "startedBy": user,
                 "completed": False,
+                "winningOption": "",
                 "closed": False,
                 "betId" : d['numBets'],
             }
@@ -295,6 +296,58 @@ class Fire:
 
             return None, "Error closing bet in the database"
 
+    async def postCompleteBet(self, guild, user, betId, winningOptionId):
+        try:
+            bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
+            points_doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
+
+            betDict = bet_doc_ref.get().to_dict()
+            pointsDict = points_doc_ref.get().to_dict()
+            memberDict = await self.fetchAllMembers(guild)
+
+            userId = str(user.id)
+
+            if not betId in betDict:
+                return None, None, "Not a valid Bet Id"
+            elif betDict[betId]['startedBy'] != user.id and not user.guild_permissions.administrator:
+                return None, None, "Only the person that started the bet or an admin can complete/payout the bet"
+            elif int(winningOptionId) > len(betDict[betId]["options"]) or int(winningOptionId) <= 0:
+                return None, None, "Not a valid Bet Option"
+
+            optionList = sorted(list(betDict[betId]["options"].keys()))
+            betDict[betId]["completed"] = True
+            betDict[betId]["winningOption"] = optionList[int(winningOptionId)-1]
+
+            # Calculate the total amount of points in the pool
+            totalPointAmount = 0
+            for key in betDict[betId]["options"]:
+                totalPointAmount += int(betDict[betId]["options"][key])
+
+            # Calculate the multipliers for each option
+            totalPointMultipliers = {}
+            for key in betDict[betId]["options"]:
+                if int(betDict[betId]["options"][key]) != 0:
+                    totalPointMultipliers[key] = totalPointAmount / int(betDict[betId]["options"][key])
+            
+            # Calculate the rewards for each user
+            userRewards = {}
+            for key in betDict[betId]["acceptedBy"]:
+                userBet = betDict[betId]["acceptedBy"][key]
+                if userBet["betOption"] == betDict[betId]["winningOption"]:
+                    pointAmount = int(int(userBet["amount"]) * totalPointMultipliers[userBet["betOption"]])
+                    userRewards[memberDict[int(key)]] = pointAmount
+                    pointsDict[userId] = int(pointsDict[userId]) + pointAmount
+
+            bet_doc_ref.set(betDict)
+            points_doc_ref.set(pointsDict)
+
+            return betDict[betId], userRewards, None
+        except Exception as e:
+            print(e)
+            print("Error completing bet")
+
+            return None, None, "Error completing bet in the database"
+
     def postBet(self, guild, user, betId, betOption, betAmount):
         try:
             bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
@@ -308,7 +361,7 @@ class Fire:
                 return None, "Not discord points"
             elif not betId in betDict:
                 return None, "Not a valid Bet Id"
-            elif betDict[betId]["closed"]:
+            elif betDict[betId]["closed"] or betDict[betId]["completed"]:
                 return None, "Bet no longer has open submissions"
             elif int(betOption) > len(betDict[betId]["options"]) or int(betOption) <= 0:
                 return None, "Not a valid Bet Option"

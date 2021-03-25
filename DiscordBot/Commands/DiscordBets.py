@@ -6,7 +6,6 @@ from datetime import datetime
 from .utils import *
 
 # IDEAS
-# 0. LOWERING THE BET ID
 # 1. BETTING AGAINST ONE PLAYER
 # 2. WINRATES
 # 3. OTHER STATS
@@ -50,6 +49,14 @@ class DiscordBets:
         else:
             return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Closed", betDict['startedAt'])
 
+    async def completeBet(self, guild, user, betId, winnerOptionId):
+        betDict, userDict, error = await self.fire.postCompleteBet(guild, user, str(betId), winnerOptionId)
+
+        if error:
+            return getOopsEmbed(error)
+        else:
+            return self.__createCompletedBetEmbed(guild, betDict, userDict)
+
     def bet(self, guild, user, messageString):
         # BetList = [BetId, Option Number, Cost]
         betList = messageString.split(" ")
@@ -81,7 +88,8 @@ class DiscordBets:
     def __createBetEmbed(self, guild, user, betTitle, betOptions, betId, betStatus, betStartedAt):
         idString, titleString, amountString = self.__createBetOptionsStrings(betOptions)
         now = datetime.today()
-        embed = discord.Embed(title=betTitle, description="Created by: " + user.display_name, timestamp=now, colour=discord.Colour.purple())
+
+        embed = discord.Embed(title=betTitle, description="Created by: TODO", timestamp=now, colour=discord.Colour.purple())
 
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
         embed.add_field(name="Bet Id", value=betId)
@@ -91,6 +99,19 @@ class DiscordBets:
         embed.add_field(name="Option", value=titleString, inline=True)
         embed.add_field(name="Total Amount Bet", value=amountString, inline=True)
         embed.add_field(name="To Bet:", value="-bet [bet id] [option number] [discord points amount]")
+
+        return embed
+
+    def __createCompletedBetEmbed(self, guild, betDict, userDict):
+        userString, amountString = self.__createUserAmountStrings(userDict)
+
+        now = datetime.today()
+        embed = discord.Embed(title=betDict['betTitle'], description=" ", timestamp=now, colour=discord.Colour.green())
+
+        embed.add_field(name="Winner", value=betDict["winningOption"], inline=False)
+        embed.add_field(name="Winners", value=userString, inline=True)
+        embed.add_field(name="Amount Won", value=amountString, inline=True)
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
 
         return embed
 
@@ -127,3 +148,17 @@ class DiscordBets:
             betOptionTotalAmount += str(betOptions[betOptionKeys[i]]) + "\n"
 
         return betOptionIds, betOptionTitles, betOptionTotalAmount
+    
+    def __createUserAmountStrings(self, userDict):
+        usersString = ""
+        amountString = ""
+
+        # This sorts the dictionary by highest-value and converts it to a list
+        # It takes form [(user_0.id, value_0) ...(user_n.id, value_n)]
+        sortedUserDict = [(k, userDict[k]) for k in sorted(userDict, key=userDict.get, reverse=True)]
+
+        for element in sortedUserDict:
+            usersString += element[0] + "\n"
+            amountString += str(element[1]) + "\n"
+        
+        return usersString, amountString
