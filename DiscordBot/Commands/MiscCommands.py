@@ -14,6 +14,16 @@ class MiscCommands:
         Fun little script that returns a random compliment
     """
 
+    fire = None
+
+    def __init__(self, fire):
+        self.fire = fire
+
+    def sendFeedback(self, guild, user, feedbackString):
+        self.fire.postFeedback(guild, user, feedbackString)
+
+        return "Thank you for your feedback <3"
+
     def getPatchNotes(self):
         """
         Parses PATCH.txt and returns a string with its contents

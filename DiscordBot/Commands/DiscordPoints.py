@@ -3,6 +3,9 @@ import discord
 import itertools
 from .utils import formatString, getUsageEmbed
 
+# IDEAS
+# 1. Paying out points (without bets)
+
 class DiscordPoints:
     """
     Class that parses Discord Points info and interactions

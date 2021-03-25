@@ -266,6 +266,13 @@ class Fire:
             print(e)
             print("Error posting new bet to Firebase")
 
+    # -------------  Misc. Functions -----------------------
+    def postFeedback(self, guild, user, feedbackString):
+        self.__db.collection('feedback').add({
+            'feedback': feedbackString, 
+            'user': user,
+            'guild': guild,
+        })
 
 
 # ---------- MARK: - Private Methods ----------

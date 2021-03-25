@@ -6,6 +6,7 @@ from datetime import datetime
 from .utils import *
 
 # IDEAS
+# 0. LOWERING THE BET ID
 # 1. BETTING AGAINST ONE PLAYER
 # 2. WINRATES
 # 3. OTHER STATS

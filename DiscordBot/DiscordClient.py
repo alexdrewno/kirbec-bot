@@ -48,7 +48,7 @@ class DiscordClient(discord.Client):
         self.timeLogger = TimeLogger(self.sharedFire)
         self.discordPoints = DiscordPoints(self.sharedFire)
         self.discordBets = DiscordBets(self.sharedFire)
-        self.miscCommands = MiscCommands()
+        self.miscCommands = MiscCommands(self.sharedFire)
         self.loop.create_task(self.__track_time())
 
     async def __track_time(self):
@@ -117,6 +117,13 @@ class DiscordClient(discord.Client):
 
             elif message.content.startswith('-patch'):
                 await message.channel.send(self.miscCommands.getPatchNotes())
+
+            elif message.content.startswith('-feedback'):
+                if len(message.content.split(" ", 1)) == 2:
+                    feedBack = message.content.split(" ", 1)
+                    await message.channel.send(self.miscCommands.sendFeedback(message.guild.id, message.author.id, feedBack[1]))
+                else: 
+                    await message.channel.send(embed=getUsageEmbed("-feedback [feedback message]"))
 
             # ---------- MARK: - TimeLogger Commands ----------
             elif message.content.startswith('-totallog'):
