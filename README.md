@@ -42,7 +42,7 @@
 
 ### Setup
 *Installing dependencies*
-- ```pip install firebase-admin```
+- ```pip install google-cloud-firestore```
 - ```pip install discord```
 
 *Set the environment variables necessary*
