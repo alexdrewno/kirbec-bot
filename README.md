@@ -15,7 +15,7 @@
 ## 🚀 Running KirbecBot on your local machine
 
 ### Requirements & Dependencies
-* ```firebase-admin``` and your own Firebase database
+* ```google-cloud-firestore``` and your own Firebase database
 * ```discord``` and your own discord api key
 
 ### Setup
