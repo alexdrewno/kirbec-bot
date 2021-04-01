@@ -70,6 +70,20 @@ class DiscordBets:
         else:
             return getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500")
 
+    def getAllActiveBets(self, guild):
+        betDict = self.fire.fetchAllBets(guild)
+        activeBets = []
+
+        for key in betDict: 
+            if key != 'numBets' and not betDict[key]['completed']:
+                activeBets.append(betDict[key])
+        
+        if len(activeBets) > 0:
+            return self.__createAllBetsEmbed(activeBets)
+        else:
+            return self.__createNoBetsEmbed()
+
+
     def showBetForUser(self, guild, user):
         betDict = self.fire.fetchAllBets(guild)
         curBet = None
@@ -125,6 +139,19 @@ class DiscordBets:
         embed.add_field(name="Bet Amount", value=str(curBetDict["betAmount"]))
 
         return embed
+    
+    def __createAllBetsEmbed(self, activeBets):
+        now = datetime.today()
+        embed = discord.Embed(title="All Active Bets", description=" ", timestamp=now)
+
+        betIds, betTitles, betStatus = self.__getActiveBetsStrings(activeBets)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+        embed.add_field(name="Id", value=betIds)
+        embed.add_field(name="Title", value=betTitles)
+        embed.add_field(name="Status", value=betStatus)
+
+        return embed
 
     def __createNoBetsEmbed(self):
         now = datetime.today()
@@ -162,3 +189,22 @@ class DiscordBets:
             amountString += str(element[1]) + "\n"
         
         return usersString, amountString
+    
+    def __getActiveBetsStrings(self, activeBets):
+        betIds = ""
+        betTitles = ""
+        betStatus = ""
+
+        for bet in activeBets:
+            numLines, formattedBetTitle = formatString(str(bet['betTitle']))
+            betIds += str(bet['betId']) + ('\n' * numLines)
+            betTitles += formattedBetTitle + '\n'
+
+            if bet['completed']:
+                betStatus += 'completed' + ('\n' * numLines)
+            elif bet['closed']:
+                betStatus += 'closed' + ('\n' * numLines)
+            else:
+                betStatus += 'open' + ('\n' * numLines)
+
+        return betIds, betTitles, betStatus

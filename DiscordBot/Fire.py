@@ -311,6 +311,8 @@ class Fire:
                 return None, None, "Not a valid Bet Id"
             elif betDict[betId]['startedBy'] != user.id and not user.guild_permissions.administrator:
                 return None, None, "Only the person that started the bet or an admin can complete/payout the bet"
+            elif betDict[betId]["completed"]:
+                return None, None, "Bet has already been completed"
             elif int(winningOptionId) > len(betDict[betId]["options"]) or int(winningOptionId) <= 0:
                 return None, None, "Not a valid Bet Option"
 

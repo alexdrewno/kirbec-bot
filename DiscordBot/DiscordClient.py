@@ -206,6 +206,9 @@ class DiscordClient(discord.Client):
                 else:
                     await message.channel.send(embed=getUsageEmbed("-completebet [Bet Id] [Winner Option Num]\n\nexample: -completebet 1 2"))
 
+            elif message.content.startswith('-allbets'):
+                await message.channel.send(embed=self.discordBets.getAllActiveBets(message.guild))
+
             elif message.content.startswith('-bet'):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
