@@ -186,7 +186,7 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
                 if len(commandAndBet) == 2:
-                    await message.channel.send(embed=self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
+                    await message.channel.send(embed=await self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
                 else:
                     await message.channel.send(embed=getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]"))
 
@@ -194,7 +194,7 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 commandAndBet = msg.split(" ")
                 if len(commandAndBet) == 2:
-                    await message.channel.send(embed=self.discordBets.closeBet(message.guild, message.author, commandAndBet[1]))
+                    await message.channel.send(embed=await self.discordBets.closeBet(message.guild, message.author, commandAndBet[1]))
                 else:
                     await message.channel.send(embed=getUsageEmbed("-closebet [Bet Id]"))
 
@@ -213,9 +213,19 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 commandAndBet = msg.split(" ", 1)
                 if len(commandAndBet) == 2:
-                    await message.channel.send(embed=self.discordBets.bet(message.guild, message.author, commandAndBet[1]))
+                    await message.channel.send(embed=await self.discordBets.bet(message.guild, message.author, commandAndBet[1]))
                 else: 
                     await message.channel.send(embed=getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500"))
 
             elif message.content.startswith('-mybets'):
                 await message.channel.send(embed=self.discordBets.showBetForUser(message.guild, message.author))
+
+            elif message.content.startswith('-showbet'):
+                msg = message.content
+                commandAndBet = msg.split(" ", 1)
+
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=await self.discordBets.showBet(message.guild, commandAndBet[1]))
+                else: 
+                    await message.channel.send(embed=getUsageEmbed("-showbet [bet id]\n\n example: -showbet 7"))
+

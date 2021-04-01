@@ -16,7 +16,7 @@ class DiscordBets:
     def __init__(self, fire):
         self.fire = fire
 
-    def createBet(self, guild, user, messageString):
+    async def createBet(self, guild, user, messageString):
         messageAndOptions = re.findall("\[(.*?)\]", messageString)
 
         if len(messageAndOptions) != 2:
@@ -36,18 +36,47 @@ class DiscordBets:
 
             betId = self.fire.postNewBet(guild, user.id, betTitle, betOptions, betStartedAt)
 
-            return self.__createBetEmbed(guild, user, betTitle, betOptions, str(betId), "Open", betStartedAt)
+            return self.__createBetEmbed(guild, user.display_name, betTitle, betOptions, str(betId), "Open", betStartedAt)
         except Exception as e:
             print(e)
             return getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]")
 
-    def closeBet(self, guild, user, betId):
+    async def showBet(self, guild, betId):
+        try:
+            # Errors out if betId is not an int and goes to the exception part
+            betIdInt = int(betId)
+            betDict = self.fire.fetchAllBets(guild)
+            memberDict = await self.fire.fetchAllMembers(guild)
+
+            for key in betDict: 
+                if key != 'numBets' and int(betDict[key]['betId']) == betIdInt:
+
+                    startedByUser = memberDict[int(betDict[key]['startedBy'])]
+                    status = "Open"
+
+                    if betDict[key]['completed']:
+                        status = "Completed"
+                    elif betDict[key]['closed']:
+                        status = "Closed"
+
+                    return self.__createBetEmbed(guild, startedByUser, betDict[key]['betTitle'], betDict[key]['options'], str(betDict[key]['betId']), status, betDict[key]['startedAt'])
+
+            return getOopsEmbed("Couldn't find a bet with that id")
+
+        except Exception as e:
+            print(e)
+            return getUsageEmbed("-showbet [bet id]\n\n example: -showbet 7")
+
+
+    async def closeBet(self, guild, user, betId):
         betDict, error = self.fire.postCloseBet(guild, user, str(betId))
+        memberDict = await self.fire.fetchAllMembers(guild)
 
         if error:
             return getOopsEmbed(error)
         else:
-            return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Closed", betDict['startedAt'])
+            startedByUser = memberDict[int(betDict['startedBy'])]
+            return self.__createBetEmbed(guild, startedByUser, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Closed", betDict['startedAt'])
 
     async def completeBet(self, guild, user, betId, winnerOptionId):
         betDict, userDict, error = await self.fire.postCompleteBet(guild, user, str(betId), winnerOptionId)
@@ -57,7 +86,7 @@ class DiscordBets:
         else:
             return self.__createCompletedBetEmbed(guild, betDict, userDict)
 
-    def bet(self, guild, user, messageString):
+    async def bet(self, guild, user, messageString):
         # BetList = [BetId, Option Number, Cost]
         betList = messageString.split(" ")
         if len(betList) == 3:
@@ -66,7 +95,10 @@ class DiscordBets:
             if error != None:
                 return getOopsEmbed(error)
             else:
-                return self.__createBetEmbed(guild, user, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Open", betDict['startedAt'])
+                memberDict = await self.fire.fetchAllMembers(guild)
+                startedByUser = memberDict[int(betDict['startedBy'])]
+
+                return self.__createBetEmbed(guild, startedByUser, betDict['betTitle'], betDict['options'], str(betDict['betId']), "Open", betDict['startedAt'])
         else:
             return getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500")
 
@@ -99,11 +131,11 @@ class DiscordBets:
             return self.__createNoBetsEmbed()
 
     # ---------- MARK: - Private Methods ----------
-    def __createBetEmbed(self, guild, user, betTitle, betOptions, betId, betStatus, betStartedAt):
+    def __createBetEmbed(self, guild, userDisplayName, betTitle, betOptions, betId, betStatus, betStartedAt):
         idString, titleString, amountString = self.__createBetOptionsStrings(betOptions)
         now = datetime.today()
 
-        embed = discord.Embed(title=betTitle, description="Created by: TODO", timestamp=now, colour=discord.Colour.purple())
+        embed = discord.Embed(title=betTitle, description="Created by: " + userDisplayName, timestamp=now, colour=discord.Colour.purple())
 
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
         embed.add_field(name="Bet Id", value=betId)
@@ -122,9 +154,14 @@ class DiscordBets:
         now = datetime.today()
         embed = discord.Embed(title=betDict['betTitle'], description=" ", timestamp=now, colour=discord.Colour.green())
 
-        embed.add_field(name="Winner", value=betDict["winningOption"], inline=False)
-        embed.add_field(name="Winners", value=userString, inline=True)
-        embed.add_field(name="Amount Won", value=amountString, inline=True)
+        embed.add_field(name="Result", value=betDict["winningOption"], inline=False)
+        
+        if userString == "":
+            embed.add_field(name="Winners", value="None", inline=True)
+        else:
+            embed.add_field(name="Winners", value=userString, inline=True)
+            embed.add_field(name="Amount Won", value=amountString, inline=True)
+
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
 
         return embed
@@ -190,7 +227,7 @@ class DiscordBets:
         for element in sortedUserDict:
             usersString += element[0] + "\n"
             amountString += str(element[1]) + "\n"
-        
+
         return usersString, amountString
     
     def __getActiveBetsStrings(self, activeBets):
