@@ -5,12 +5,42 @@ import re
 from datetime import datetime
 from .utils import *
 
-# IDEAS
-# 1. BETTING AGAINST ONE PLAYER
-# 2. WINRATES
-# 3. OTHER STATS
-
 class DiscordBets:
+    """
+    Class that creates bets within the Discord Community
+
+    Attributes
+    __________
+    fire (Fire obj): The fire instance where information is fetched/updated
+
+    Functions
+    __________
+    async def createBet(guild, user, messageString) -> (discord.Embed)
+        Creates a bet for the user in the guild with the following info from messageString.
+        Returns a usage embed if the command is incorrectly used otherwise returns the corresponding bet.
+
+    async def showBet(guild, betId) -> (discord.Embed)
+        Shows the bet embed for the bet with id 'betId'
+
+    async def closeBet(guild, user, betId) -> (discord.Embed)
+        Closes the bet for submissions with id 'betId'. 
+        Only the user that started the bet or an admin may close the bet.
+
+    async def completeBet(guild, user, betId, winnerOptionId) -> (discord.Embed)
+        Completes the bet with id 'betId' with winning option 'winnerOptionId' and pays out to the winner(s).
+        Only the user that started the bet or an admin may complete the bet.
+    
+    async def bet(guild, user, messageString) -> (discord.Embed)
+        Adds a bet using the information from messageString (expected: [BetId] [Option Number] [Amount]).
+        Returns the bet embed with the updated information or an error/usage embed
+
+    def getAllActiveBets(guild) -> (discord.Embed)
+        Gets all of the active (open/closed) bets within the guild
+    
+    def showBetForUser(self, guild, user) -> (discord.Embed)
+        Gets all of the active bets for the user
+
+    """
     fire = None
 
     def __init__(self, fire):
@@ -67,7 +97,6 @@ class DiscordBets:
             print(e)
             return getUsageEmbed("-showbet [bet id]\n\n example: -showbet 7")
 
-
     async def closeBet(self, guild, user, betId):
         betDict, error = self.fire.postCloseBet(guild, user, str(betId))
         memberDict = await self.fire.fetchAllMembers(guild)
@@ -114,7 +143,6 @@ class DiscordBets:
             return self.__createAllBetsEmbed(activeBets)
         else:
             return self.__createNoBetsEmbed()
-
 
     def showBetForUser(self, guild, user):
         betDict = self.fire.fetchAllBets(guild)

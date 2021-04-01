@@ -28,6 +28,25 @@ class Fire:
         Fetch all members' times organized by date
     fetchDiscordPoints(guild) -> dict: { discord.member.id: int }
         Fetch all members' discord points for the server
+    postNewDiscordPoints(guild, user, newPoints)
+        Updates the discord points for a user
+    postNewReward(guild, rewardTitle, rewardCost)
+        Pushes a new reward to the database
+    fetchAllRewards(guild) -> dict: { rewardTitle(str) : cost(int) }
+        Shows all Discord Points rewards for the guild
+    fetchAllBets(guild) -> dict: { betId(int): betDict(dict) }
+        Shows all proposed bets for the guild
+    postNewBet(guild, userId, betTitle, betOptions, betStartedAt) -> betId(int)
+        Creates a new bet in the database
+    postCloseBet(guild, user, betId) -> betDict(str), errorString(str)
+        Marks a bet as closed in the database
+    async def postCompleteBet(guild, user, betId, winningOptionId) ->  betDict(dict), userRewards(dict), errorString(str)
+        Marks a bet as completed in the database and pays out the winners
+    postBet(guild, user, betId, betOption, betAmount) -> betDict(dict), errorString(str)
+        Adds an amount for the user for a bet option to the database
+    postFeedback(guild, userId, feedbackString)
+        Posts feedback to the database for the guild/userId
+
     """
 
     __db = None
@@ -233,6 +252,19 @@ class Fire:
 
 # ---------------------- Discord Bets ---------------------------
     def fetchAllBets(self, guild):
+        """
+        Fetch all bets within the discord
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to get information from
+
+        Returns
+        ----------
+        d: { betId(int): betDict(dict) }
+        """
+
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
             d = doc_ref.get().to_dict()
@@ -244,7 +276,28 @@ class Fire:
         except:
             return {}
 
-    def postNewBet(self, guild, user, betTitle, betOptions, betStartedAt):
+    def postNewBet(self, guild, userId, betTitle, betOptions, betStartedAt):
+        """
+        Create a new bet in the database
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to push information to
+        userId: int
+            The id of the user posting the bet
+        betTitle: string
+            The title of the bet
+        betOptions: { betOption(string) : amountBet(int) }
+            All of the options for the bet and the total amount wagered on them
+        betStartedAt: string
+            A string representing when the bet was started
+
+        Returns
+        ----------
+        betId: int
+            An int representing the id of the bet we just created
+        """
         try:
             doc_ref = self.__db.collection(str(guild.id)).document('bets')
 
@@ -260,7 +313,7 @@ class Fire:
                 "options": betOptions,
                 "betTitle": betTitle,
                 "startedAt": betStartedAt,
-                "startedBy": user,
+                "startedBy": userId,
                 "completed": False,
                 "winningOption": "",
                 "closed": False,
@@ -269,6 +322,7 @@ class Fire:
 
             doc_ref.set(d)
 
+            # We return the value of the betId that we just created (based off of numBets)
             return d['numBets']
         except Exception as e:
             print(e)
@@ -277,13 +331,33 @@ class Fire:
             return -1
 
     def postCloseBet(self, guild, user, betId):
+        """
+        Marks a bet as 'closed' within the database
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to push information to
+        user: discord.Member
+            The user closing the bet
+        betId: str
+            The id of the bet we are attempting to close
+
+        Returns
+        ----------
+        betDict: dict
+            The bet we attempted to close
+        errorString: str
+            The string representing the error if one occurred
+        """
+
         try:
             bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
             betDict = bet_doc_ref.get().to_dict()
 
             if not betId in betDict:
                 return None, "Not a valid Bet Id"
-            if betDict[betId]['startedBy'] != user.id and not user.guild_permissions.administrator:
+            if betDict[betId]['startedBy'] != userId and not user.guild_permissions.administrator:
                 return None, "Only the person that started the bet or an admin can close submissions for the bet"
 
             betDict[betId]["closed"] = True
@@ -297,6 +371,30 @@ class Fire:
             return None, "Error closing bet in the database"
 
     async def postCompleteBet(self, guild, user, betId, winningOptionId):
+        """
+        Marks a bet as 'completed' within the database
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to push information to
+        user: discord.Member
+            The user completing the bet
+        betId: str
+            The id of the bet we are attempting to complete
+        winningOptionId: str
+            The id of the option that won the bet
+
+        Returns
+        ----------
+        betDict: dict
+            The bet we attempted to complete
+        userRewards: dict {userId : amountWon}
+            The dictionary with ids representing how many points each user won 
+        errorString: str
+            The string representing the error if one occurred
+        """
+        
         try:
             bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
             points_doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
@@ -351,6 +449,29 @@ class Fire:
             return None, None, "Error completing bet in the database"
 
     def postBet(self, guild, user, betId, betOption, betAmount):
+        """
+        Adds a bet for a user to an open bet
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The server that we want to push information for
+        user: discord.Member
+            The user adding a bet
+        betId: str
+            The id of the bet we are attempting to add an individual bet to
+        betOption: str
+            The id of the bet option the user wants to bet for
+        betAmount: int
+            The amount the user wants to bet for that option
+
+        Returns
+        ----------
+        betDict: dict
+            The bet the user bet on with updated information
+        errorString: str
+            The string representing the error if one occurred
+        """
         try:
             bet_doc_ref = self.__db.collection(str(guild.id)).document('bets')
             points_doc_ref = self.__db.collection(str(guild.id)).document('discordPoints')
@@ -391,10 +512,22 @@ class Fire:
             return None, "Error sending information to the database"
 
     # -------------  Misc. Functions -----------------------
-    def postFeedback(self, guild, user, feedbackString):
+    def postFeedback(self, guild, userId, feedbackString):
+        """
+        Post feedback to the database
+
+        Parameters
+        ----------
+        guild : discord.Guild
+            The guild the feedback is for
+        userId : int
+            The if of the user that left the feedback
+        feedbackString: string
+            A string representing the feedback 
+        """
         self.__db.collection('feedback').add({
             'feedback': feedbackString, 
-            'user': user,
+            'user': userId,
             'guild': guild,
         })
 

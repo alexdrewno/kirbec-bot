@@ -4,6 +4,10 @@ import discord
 def formatString(oldStr):
     """
     Format string into separate lines
+    
+    *NOTE* 
+    The newStr already has new lines and the developer should use the numLines return
+    to align any other strings to the newStr
 
     Parameters
     ----------
@@ -37,6 +41,20 @@ def formatString(oldStr):
     return numLines, newStr
 
 def getOopsEmbed(errorString):
+    """
+    Show the usage for addReward
+
+    Parameters
+    ----------
+    errorString : String
+        A string representing the error that occurred
+
+    Returns
+    ----------
+    discord.Embed
+        Embedded message with the error message
+    """
+
     now = datetime.today()
     embed = discord.Embed(title="Oops!", description="", timestamp=now, colour=discord.Colour.red())
 
@@ -47,17 +65,17 @@ def getOopsEmbed(errorString):
 
 def getUsageEmbed(usageString):
     """
-    Show the usage for addReward
+    Show the usage for a particular command
 
     Parameters
     ----------
-    guild : discord.Guild
-        The server that we want to get information from
+    usageString : String
+        The usage string info for the command
 
     Returns
     ----------
     discord.Embed
-        Embedded message with the usage for addReward
+        Embedded message with the usage info
     """
 
     now = datetime.today()
