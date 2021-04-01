@@ -86,15 +86,15 @@ class DiscordBets:
 
     def showBetForUser(self, guild, user):
         betDict = self.fire.fetchAllBets(guild)
-        curBet = None
+        activeBets = []
 
         for key in betDict:
-            if int(betDict[key]['startedBy']) == user.id:
+            if key != 'numBets' and int(betDict[key]['startedBy']) == user.id:
                 if not betDict[key]['completed']:
-                    curBet = betDict[key]
+                    activeBets.append(betDict[key])
 
-        if curBet:
-            return self.__createMyBetsEmbed(curBet, user)
+        if len(activeBets) > 0:
+            return self.__createMyBetsEmbed(user, activeBets)
         else:
             return self.__createNoBetsEmbed()
 
@@ -129,14 +129,17 @@ class DiscordBets:
 
         return embed
 
-    def __createMyBetsEmbed(self, curBetDict, user):
+    def __createMyBetsEmbed(self, user, activeBets):
         now = datetime.today()
         embed = discord.Embed(title="My Bets", description=" ", timestamp=now)
 
+        betIds, betTitles, betStatus = self.__getActiveBetsStrings(activeBets)
+
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
-        embed.add_field(name="Bet Title", value=curBetDict["betTitle"])
-        embed.add_field(name="Bet Amount", value=str(curBetDict["betAmount"]))
+        embed.add_field(name="Id", value=betIds)
+        embed.add_field(name="Title", value=betTitles)
+        embed.add_field(name="Status", value=betStatus)
 
         return embed
     
@@ -194,6 +197,8 @@ class DiscordBets:
         betIds = ""
         betTitles = ""
         betStatus = ""
+
+        activeBets = sorted(activeBets, key=lambda k: k['betId']) 
 
         for bet in activeBets:
             numLines, formattedBetTitle = formatString(str(bet['betTitle']))
