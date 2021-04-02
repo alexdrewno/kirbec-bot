@@ -109,8 +109,7 @@ class DiscordClient(discord.Client):
                 await message.channel.send(s)
 
             elif message.content.startswith('-help'):
-                s = self.miscCommands.getHelpMessage()
-                await message.channel.send(s)
+                await message.channel.send(embed=self.miscCommands.getHelpMessage())
 
             elif message.content.startswith('-rob'):
                 await message.channel.send("Rob is a qt3.14 :-)")

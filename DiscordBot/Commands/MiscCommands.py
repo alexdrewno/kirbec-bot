@@ -1,4 +1,6 @@
 from random import randint
+import discord
+from datetime import datetime
 
 class MiscCommands:
     """
@@ -52,17 +54,44 @@ class MiscCommands:
         s (str): Help message string
         """
 
-        s = 'Commands: \n\n'
-        s += '`-help`: lists all commands\n'
-        s += '`-patch`: gets patch notes for past couple of releases\n'
-        s += '`-hello`: hey :)\n'
-        s += '`-totallog`: gets the tracked minutes in voice\n'
-        s += '`-todaylog`: gets the tracked minutes for the day\n'
-        s += '`-weeklog`: amount of time logged for the last 7 days\n'
-        s += '`-mylog`: some cool stats\n'
-        s += '`-rob`: :-)\n'
+        timeLoggerStr = ""
+        discordPointsStr = ""
+        discordBetsStr = ""
+        miscStr = ""
 
-        return s
+        timeLoggerStr += '`-totallog`: gets the tracked minutes in voice\n'
+        timeLoggerStr += '`-todaylog`: gets the tracked minutes for the day\n'
+        timeLoggerStr += '`-weeklog`: amount of time logged for the last 7 days\n'
+        timeLoggerStr += '`-mylog`: some cool stats\n'
+
+        discordPointsStr += '`-points`: shows all of the points for each user in the Discord server\n'
+        discordPointsStr += '`-addreward`(admins): add a reward for discord points\n'
+        discordPointsStr += '`-rewards`: shows a list of all rewards for the Discord server\n'
+        discordPointsStr += '`-redeem`: redeem a reward\n'
+
+        discordBetsStr += '`-createbet`: create a bet / prediction\n'
+        discordBetsStr += '`-closebet`: closes a bet for submission\n'
+        discordBetsStr += '`-completebet`: completes the bet and pays points to the winner(s)\n'
+        discordBetsStr += '`-bet`: bet on an option in a particular prediction\n'
+        discordBetsStr += '`-allbets`: shows a list of all active bets\n'
+        discordBetsStr += '`-showbet`: shows a particular bet and its options\n'
+        discordBetsStr += '`-mybets`: shows a list of all active bets for the user\n'
+
+        miscStr += '`-help`: lists all commands\n'
+        miscStr += '`-rob`: :-)\n'
+        miscStr += '`-hello`: hey :)\n'
+
+        now = datetime.today()
+        embed = discord.Embed(title="Kirbec Bot", description="All of Kirbec Bot's commands", timestamp=now, colour=discord.Colour.purple())
+
+        embed.add_field(name="Time Logger", value=timeLoggerStr, inline=False)
+        embed.add_field(name="Discord Points", value=discordPointsStr, inline=False)
+        embed.add_field(name="Discord Bets", value=discordBetsStr, inline=False)
+        embed.add_field(name="Misc.", value=miscStr, inline=False)
+
+        embed.set_footer(text="Kirbec Bot", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+
+        return embed
 
     def getRandomCompliment(self):
         """
@@ -73,7 +102,7 @@ class MiscCommands:
         s (str): Random compliment string
         """
 
-        with open('../data/Compliments.txt') as f:
+        with open('../../data/Compliments.txt') as f:
             content = f.readlines()
         content = [x.strip() for x in content]
 
