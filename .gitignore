@@ -4,4 +4,6 @@
 .env
 /DiscordBot/Commands/__pycache__/*
 /kirbec-bot-archive/*
+./firebase_config.json/
+./firebase_config_live.json/
 
