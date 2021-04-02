@@ -1,4 +1,3 @@
-from random import randint
 import discord
 import os
 from datetime import datetime

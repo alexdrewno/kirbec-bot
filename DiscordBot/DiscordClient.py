@@ -2,8 +2,11 @@ import discord
 import asyncio
 
 from Fire import Fire
-from TimeLogger import TimeLogger
-from MiscCommands import MiscCommands
+from Commands.TimeLogger import TimeLogger
+from Commands.MiscCommands import MiscCommands
+from Commands.DiscordPoints import DiscordPoints
+from Commands.DiscordBets import DiscordBets
+from Commands.utils import *
 
 class DiscordClient(discord.Client):
     """
@@ -31,6 +34,8 @@ class DiscordClient(discord.Client):
     sharedFire = None
     timeLogger = None
     miscCommands = None
+    discordPoints = None
+    discordBets = None
 
     async def on_ready(self):
         """
@@ -41,7 +46,9 @@ class DiscordClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
         self.sharedFire = Fire()
         self.timeLogger = TimeLogger(self.sharedFire)
-        self.miscCommands = MiscCommands()
+        self.discordPoints = DiscordPoints(self.sharedFire)
+        self.discordBets = DiscordBets(self.sharedFire)
+        self.miscCommands = MiscCommands(self.sharedFire)
         self.loop.create_task(self.__track_time())
 
     async def __track_time(self):
@@ -102,14 +109,20 @@ class DiscordClient(discord.Client):
                 await message.channel.send(s)
 
             elif message.content.startswith('-help'):
-                s = self.miscCommands.getHelpMessage()
-                await message.channel.send(s)
+                await message.channel.send(embed=self.miscCommands.getHelpMessage())
 
             elif message.content.startswith('-rob'):
                 await message.channel.send("Rob is a qt3.14 :-)")
 
             elif message.content.startswith('-patch'):
                 await message.channel.send(self.miscCommands.getPatchNotes())
+
+            elif message.content.startswith('-feedback'):
+                if len(message.content.split(" ", 1)) == 2:
+                    feedBack = message.content.split(" ", 1)
+                    await message.channel.send(self.miscCommands.sendFeedback(message.guild.id, message.author.id, feedBack[1]))
+                else: 
+                    await message.channel.send(embed=getUsageEmbed("-feedback [feedback message]"))
 
             # ---------- MARK: - TimeLogger Commands ----------
             elif message.content.startswith('-totallog'):
@@ -127,9 +140,91 @@ class DiscordClient(discord.Client):
                 msg = message.content
                 msgAndPage = msg.split(" ")
                 if len(msgAndPage) == 2:
-                    await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(int(msgAndPage[1], message.guild)))
+                    await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(int(msgAndPage[1]), message.guild))
                 else:
                     await message.channel.send(embed=await self.timeLogger.getWeekLogEmbed(1, message.guild))
 
             elif message.content.startswith('-mylog'):
                 await message.channel.send(embed=self.timeLogger.getMyLogEmbed(message.guild, message.author))
+
+            # ---------- MARK: - DiscordPoints Commands ----------
+            elif message.content.startswith('-points'):
+                msg = message.content
+                msgAndPage = msg.split(" ")
+                if len(msgAndPage) == 2:
+                    await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(int(msgAndPage[1]), message.guild))
+                else:
+    	            await message.channel.send(embed=await self.discordPoints.getDiscordPointsEmbed(1, message.guild))
+
+            elif message.content.startswith('-addreward'):
+                msg = message.content
+                commandAndReward = msg.split(" ", 1)
+
+                if (message.author.guild_permissions.administrator):
+                    if len(commandAndReward) == 2:
+                        await message.channel.send(embed=self.discordPoints.createNewReward(message.guild, commandAndReward[1]))
+                    else:
+                        await message.channel.send(embed=getUsageEmbed("-addreward [Desired Reward] [Price of the Reward]\n\nexample: -addreward CSGO with friends 500"))
+                else:
+                    await message.channel.send(embed=getMissingPermissionsEmbed("Oops.. you have to be an admin to use this command"))
+
+            elif message.content.startswith('-rewards'):
+                await message.channel.send(embed=self.discordPoints.getRewardsEmbed(message.guild))
+
+            elif message.content.startswith('-redeem'):
+                msg = message.content
+                commandAndRewardId = msg.split(" ")
+
+                if len(commandAndRewardId) == 2:
+                    await message.channel.send(embed=self.discordPoints.redeemReward(message.guild, message.author, commandAndRewardId[1]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-redeemReward [Desired Reward Id]\n\nexample: -redeemReward 3"))
+
+            # ---------- MARK: - DiscordBet Commands ----------
+            elif message.content.startswith('-createbet'):
+                msg = message.content
+                commandAndBet = msg.split(" ", 1)
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=await self.discordBets.createBet(message.guild, message.author, commandAndBet[1]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-createbet [[Bet Description]] [[Option 1], [Option 2], ...]\n\nexample: -createbet [I will win this game] [yes, no]"))
+
+            elif message.content.startswith('-closebet'):
+                msg = message.content
+                commandAndBet = msg.split(" ")
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=await self.discordBets.closeBet(message.guild, message.author, commandAndBet[1]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-closebet [Bet Id]"))
+
+            elif message.content.startswith('-completebet'):
+                msg = message.content
+                commandAndBet = msg.split(" ")
+                if len(commandAndBet) == 3:
+                    await message.channel.send(embed=await self.discordBets.completeBet(message.guild, message.author, commandAndBet[1], commandAndBet[2]))
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-completebet [Bet Id] [Winner Option Num]\n\nexample: -completebet 1 2"))
+
+            elif message.content.startswith('-allbets'):
+                await message.channel.send(embed=self.discordBets.getAllActiveBets(message.guild))
+
+            elif message.content.startswith('-bet'):
+                msg = message.content
+                commandAndBet = msg.split(" ", 1)
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=await self.discordBets.bet(message.guild, message.author, commandAndBet[1]))
+                else: 
+                    await message.channel.send(embed=getUsageEmbed("-bet [bet id] [option number] [discord points amount]\n\n example: -bet 3 2 500"))
+
+            elif message.content.startswith('-mybets'):
+                await message.channel.send(embed=self.discordBets.showBetForUser(message.guild, message.author))
+
+            elif message.content.startswith('-showbet'):
+                msg = message.content
+                commandAndBet = msg.split(" ", 1)
+
+                if len(commandAndBet) == 2:
+                    await message.channel.send(embed=await self.discordBets.showBet(message.guild, commandAndBet[1]))
+                else: 
+                    await message.channel.send(embed=getUsageEmbed("-showbet [bet id]\n\n example: -showbet 7"))
+

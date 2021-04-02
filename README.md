@@ -2,7 +2,9 @@
 **KirbecBot is an open source Discord Bot written in Python that currently logs the amount of the time users spend in the Discord server with many more features in progress**
 <br/>
 
-## ⏱️ Time-Logger Commands
+## Commands
+
+### ⏱️ Time-Logger 
 
 *Note: KirbecBot increases time only when the user is not AFK, deafened, or muted.*
 
@@ -10,6 +12,26 @@
 * ```-weeklog``` Shows the amount of time spent in the Discord server for the past week
 * ```-totallog``` Shows the amount of time spent in the Discord server that has been logged by KirbecBot
 * ```-mylog``` Shows personalized information for the user
+
+### 💳 Discord Points
+*Discord Points are accumulated by spending time in the Discord server and can be spent on guild-defined rewards*
+
+* ```-points``` Shows all of the points for each user in the Discord server
+* ```-addreward``` Add a reward for discord points (admins)
+* ```-rewards``` Shows a list of all rewards for the Discord server
+* ```-redeem``` Redeem a reward 
+
+### 🎲 Discord Bets
+*Bet/Make predictions against other users in the Discord server*
+
+* ```-createbet``` Create a bet / prediction
+* ```-closebet``` Closes a bet for submission
+* ```-completebet``` Completes the bet and pays points to the winner
+* ```-allbets``` Shows a list of all **active** bets
+* ```-mybets``` Shows a list of all **active** bets for the user
+* ```-bet``` Add a bet on a particular prediction option
+* ```-showbet``` Shows a particular bet and its options
+
 <br/>
 
 ## 🚀 Running KirbecBot on your local machine
@@ -20,7 +42,7 @@
 
 ### Setup
 *Installing dependencies*
-- ```pip install firebase-admin```
+- ```pip install google-cloud-firestore```
 - ```pip install discord```
 
 *Set the environment variables necessary*
