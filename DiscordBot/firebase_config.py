@@ -1,9 +1,9 @@
 import os
 import json
 
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 
 FIREBASE_TYPE = os.getenv('FIREBASE_TYPE')
 FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')
