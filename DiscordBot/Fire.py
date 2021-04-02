@@ -330,7 +330,7 @@ class Fire:
             
             return -1
 
-    def postCloseBet(self, guild, user, betId):
+    def postCloseBet(self, guild, userId, betId):
         """
         Marks a bet as 'closed' within the database
 
