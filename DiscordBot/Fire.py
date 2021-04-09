@@ -124,7 +124,8 @@ class Fire:
 
         self.__updateTotalTimes(guild, members)
         self.__updateDayTimes(guild, members)
-        self.__increaseDiscordPoints(guild, members)
+        if len(members) > 1:
+            self.__increaseDiscordPoints(guild, members)
 
 
     def fetchAllDateTimes(self, guild):
