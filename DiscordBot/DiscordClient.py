@@ -128,7 +128,7 @@ class DiscordClient(discord.Client):
                 splitMessage = message.content.split(" ", 1)
                 if len(splitMessage) == 2:
                     donkeyUser = splitMessage[1]
-                    await message.channel.send(donkeyUser, file=self.miscCommands.getDonkey())
+                    await message.channel.send(donkeyUser, file=self.miscCommands.getDonkeyImage())
                 else:
                     await message.channel.send(embed=getUsageEmbed("-donkey [discord user]"))
 

@@ -108,18 +108,18 @@ class MiscCommands:
 
         return content[randint(0,99)]
 
-    def getDonkey(self):
+    def getDonkeyImage(self):
         """
         Fun script that sends a donkey image with a user tagged
 
         Returns
         ----------
-        imagePath : donkey image path
+        discord image
         """
 
         PATH_TO_DONKEY = '../../data/donkey.png'
 
-        return PATH_TO_DONKEY
+        return discord.File(PATH_TO_DONKEY)
 
 
 
