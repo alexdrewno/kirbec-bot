@@ -124,6 +124,14 @@ class DiscordClient(discord.Client):
                 else: 
                     await message.channel.send(embed=getUsageEmbed("-feedback [feedback message]"))
 
+            elif message.content.startswith('-donkey'):
+                splitMessage = message.content.split(" ", 1)
+                if len(splitMessage) == 2:
+                    donkeyUser = splitMessage[1]
+                    await message.channel.send(donkeyUser, file=self.miscCommands.getDonkey())
+                else:
+                    await message.channel.send(embed=getUsageEmbed("-donkey [discord user]"))
+
             # ---------- MARK: - TimeLogger Commands ----------
             elif message.content.startswith('-totallog'):
                 msg = message.content

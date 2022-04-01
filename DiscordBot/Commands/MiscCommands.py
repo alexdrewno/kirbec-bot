@@ -107,3 +107,19 @@ class MiscCommands:
         content = [x.strip() for x in content]
 
         return content[randint(0,99)]
+
+    def getDonkey(self):
+        """
+        Fun script that sends a donkey image with a user tagged
+
+        Returns
+        ----------
+        imagePath : donkey image path
+        """
+
+        PATH_TO_DONKEY = '../../data/donkey.png'
+
+        return PATH_TO_DONKEY
+
+
+
