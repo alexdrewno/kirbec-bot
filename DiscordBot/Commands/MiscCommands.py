@@ -117,9 +117,6 @@ class MiscCommands:
         discord image
         """
 
-        PATH_TO_DONKEY = '../../data/donkey.png'
+        PATH_TO_DONKEY = "data/donkey.png"
 
         return discord.File(PATH_TO_DONKEY)
-
-
-
